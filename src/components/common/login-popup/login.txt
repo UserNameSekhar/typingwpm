@@ -1,0 +1,434 @@
+import React, { useEffect, useRef, useState } from "react";
+import "./loginPopup.css";
+
+interface IProps {
+  setShowLogin: React.Dispatch<React.SetStateAction<boolean>>;
+  isLogin: boolean;
+  setIsLogin: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const LoginPopup: React.FC<IProps> = ({
+  setShowLogin,
+  isLogin,
+  setIsLogin,
+}) => {
+  // const context = useContext(StoreContext);
+  // if (!context) {
+  //   return <div>Loading...</div>;
+  // }
+
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+  });
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // try {
+    //   const response = await loginUser({
+    //     email: formData.email,
+    //     password: formData.password,
+    //   });
+    //   if (response.success) {
+    //     toast.success(response.message);
+    //     setToken(response.token);
+    //     setCurrentUser(response.user);
+    //     localStorage.setItem("token", response.token);
+    //     localStorage.setItem("currentUser", JSON.stringify(response.user));
+    //     setShowLogin(false);
+    //   } else {
+    //     toast.warning(response.message);
+    //   }
+    // } catch (error: any) {
+    //   if (
+    //     error.response &&
+    //     error.response.data &&
+    //     error.response.data.message
+    //   ) {
+    //     console.log("Error:", error.response.data.message);
+    //     toast.error(error.response.data.message);
+    //   } else {
+    //     console.log(error, "Unknown error");
+    //     toast.error("An unknown error occurred during login");
+    //   }
+    // }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // try {
+    //   const response = await registerUser(formData);
+    //   if (response.success) {
+    //     toast.success(response.message);
+    //     setIsLogin(true);
+    //   } else {
+    //     toast.warning(response.message);
+    //   }
+    // } catch (error: any) {
+    //   if (
+    //     error.response &&
+    //     error.response.data &&
+    //     error.response.data.message
+    //   ) {
+    //     console.log("Error:", error.response.data.message);
+    //     toast.error(error.response.data.message);
+    //   } else {
+    //     console.log(error, "Unknown error");
+    //     toast.error("An unknown error occurred during login");
+    //   }
+    // }
+  };
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(event.target as Node)
+      ) {
+        setShowLogin(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [setShowLogin]);
+
+  return (
+    <div className="login-popup-container">
+      <div className="login-popup" ref={popupRef}>
+        <button className="close-popup" onClick={() => setShowLogin(false)}>
+          X
+        </button>
+
+        <div className="login-popup-tabs">
+          <button
+            className={`tab ${isLogin ? "active" : ""}`}
+            onClick={() => setIsLogin(true)}
+          >
+            Sign In
+          </button>
+          <button
+            className={`tab ${!isLogin ? "active" : ""}`}
+            onClick={() => setIsLogin(false)}
+          >
+            Sign Up
+          </button>
+        </div>
+
+        <div className="form-container">
+          {isLogin ? (
+            <form className="form login-form active" onSubmit={handleLogin}>
+              <h2 className="form-title">Sigin In</h2>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                className="input-field"
+                required
+                onChange={handleChange}
+              />
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                className="input-field"
+                required
+                onChange={handleChange}
+              />
+              <button type="submit" className="form-button">
+                Sign In
+              </button>
+            </form>
+          ) : (
+            <form className="form signup-form active" onSubmit={handleSignUp}>
+              <h2 className="form-title">Sign Up</h2>
+              <input
+                type="text"
+                name="name"
+                placeholder="Name"
+                className="input-field"
+                required
+                onChange={handleChange}
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                className="input-field"
+                required
+                onChange={handleChange}
+              />
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                className="input-field"
+                required
+                onChange={handleChange}
+              />
+              <input
+                type="text"
+                name="phone"
+                placeholder="Phone Number"
+                className="input-field"
+                required
+                onChange={handleChange}
+              />
+
+              <div className="terms-container">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={agreedToTerms}
+                  onChange={() => setAgreedToTerms(!agreedToTerms)}
+                  className="terms-checkbox"
+                />
+                <label htmlFor="terms" className="terms-label">
+                  I agree to the{" "}
+                  <a href="#" target="_parent" rel="noopener noreferrer">
+                    Terms and Conditions
+                  </a>
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                className="form-button"
+                disabled={!agreedToTerms}
+              >
+                Sign Up
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPopup;
+
+import { motion } from "framer-motion";
+import { X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+
+interface IProps {
+  setShowLogin: React.Dispatch<React.SetStateAction<boolean>>;
+  isLogin: boolean;
+  setIsLogin: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const LoginPopup: React.FC<IProps> = ({
+  setShowLogin,
+  isLogin,
+  setIsLogin,
+}) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+  });
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const popupContainer = document.querySelector(".popup-container");
+      if (popupContainer && !popupContainer.contains(e.target as Node)) {
+        setShowLogin(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [setShowLogin]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isLogin) {
+      // Handle login logic
+      console.log("Login Data:", formData);
+    } else {
+      // Handle sign-up logic
+      console.log("Sign Up Data:", formData);
+    }
+  };
+
+  return (
+    <motion.div
+      className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-70 z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
+      aria-labelledby="login-popup-title"
+      aria-modal="true"
+      role="dialog"
+      style={{ backdropFilter: "blur(0px)" }}
+    >
+      <motion.div
+        initial={{ y: "-10vh" }}
+        animate={{ y: 0 }}
+        exit={{ y: "-10vh" }}
+        transition={{ duration: 0.5 }}
+        className="popup-container bg-light-bg dark:bg-dark-bg p-8 rounded-xl shadow-2xl w-full max-w-md relative mx-4"
+        style={{ backdropFilter: "blur(10px)" }}
+      >
+        <button
+          className="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 transition"
+          onClick={() => setShowLogin(false)}
+          aria-label="Close login popup"
+        >
+          <X />
+        </button>
+
+        <h2
+          id="login-popup-title"
+          className="text-xl font-semibold text-center text-gray-800 dark:text-gray-100 mb-4"
+        >
+          {isLogin ? "Welcome Back" : "Create an Account"}
+        </h2>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-6 flex items-center justify-center h-full bg-light-card dark:bg-dark-card py-2 rounded-lg relative"
+        >
+          {/* Sign In Button */}
+          <button
+            onClick={() => setIsLogin(true)}
+            className={`w-full text-light-textPrimary font-semibold dark:text-dark-textPrimary z-10 py-2 mx-2 hover:bg-light-bg dark:hover:bg-dark-bg rounded-lg transition-colors duration-200 ${
+              isLogin
+                ? "bg-light-primary text-white dark:bg-dark-primary dark:hover:bg-dark-primary hover:bg-light-primary"
+                : "bg-transparent"
+            }`}
+          >
+            Sign In
+          </button>
+
+          {/* Sign Up Button */}
+          <button
+            onClick={() => setIsLogin(false)}
+            className={`w-full text-light-textPrimary font-semibold dark:text-dark-textPrimary z-10 py-2 mx-2 hover:bg-light-bg dark:hover:bg-dark-bg rounded-lg transition-colors duration-200 ${
+              !isLogin
+                ? "bg-light-primary text-white dark:bg-dark-primary dark:hover:bg-dark-primary hover:bg-light-primary"
+                : "bg-transparent"
+            }`}
+          >
+            Sign Up
+          </button>
+        </motion.div>
+
+        <motion.form
+          className="space-y-6 z-20"
+          onSubmit={handleSubmit}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ opacity: { duration: 0.5, ease: "easeInOut" } }}
+        >
+          {/* Name Field (For Sign Up only) */}
+          {!isLogin && (
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-light-textSecondary dark:text-dark-textSecondary text-sm font-medium mb-2"
+              >
+                Full Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Enter your name"
+                className="w-full px-4 py-3 text-light-textPrimary dark:text-dark-textPrimary bg-transparent border dark:border-gray-700 rounded-lg focus:ring-2 hover:ring-1 hover:ring-light-primary/70 dark:hover:ring-dark-primary/70 focus:ring-light-primary dark:focus:ring-dark-primary focus:ring-opacity-50 focus:outline-none outline-none transition-all duration-300"
+              />
+            </div>
+          )}
+
+          {/* Email Field */}
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-light-textSecondary dark:text-dark-textSecondary text-sm font-medium mb-2"
+            >
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+              className="w-full px-4 py-3 text-light-textPrimary dark:text-dark-textPrimary bg-transparent border dark:border-gray-700 rounded-lg focus:ring-2 hover:ring-1 hover:ring-light-primary/70 dark:hover:ring-dark-primary/70 focus:ring-light-primary dark:focus:ring-dark-primary focus:ring-opacity-50 focus:outline-none outline-none transition-all duration-300"
+            />
+          </div>
+
+          {/* Password Field */}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-light-textSecondary dark:text-dark-textSecondary text-sm font-medium mb-2"
+            >
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter your password"
+              className="w-full px-4 py-3 text-light-textPrimary dark:text-dark-textPrimary bg-transparent border dark:border-gray-700 rounded-lg focus:ring-2 hover:ring-1 hover:ring-light-primary/70 dark:hover:ring-dark-primary/70 focus:ring-light-primary dark:focus:ring-dark-primary focus:ring-opacity-50 focus:outline-none outline-none transition-all duration-300"
+            />
+          </div>
+
+          {/* Submit Button */}
+          <motion.button
+            type="submit"
+            className="w-full py-2 bg-light-primary dark:bg-dark-primary text-white rounded-lg hover:brightness-110 focus:ring-2 focus:ring-light-primary dark:focus:ring-dark-primary transition-all duration-300"
+          >
+            {isLogin ? "Login" : "Sign Up"}
+          </motion.button>
+        </motion.form>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default LoginPopup;
+

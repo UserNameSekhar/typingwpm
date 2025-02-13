@@ -1,0 +1,270 @@
+import { motion } from "framer-motion";
+import { Lock, Mail, Phone, Signature, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { images } from "../../../assets/images/images";
+
+interface IProps {
+  setShowLogin: React.Dispatch<React.SetStateAction<boolean>>;
+  isLogin: boolean;
+  setIsLogin: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const LoginPopup: React.FC<IProps> = ({
+  setShowLogin,
+  isLogin,
+  setIsLogin,
+}) => {
+  const [formData, setFormData] = useState({
+    emailOrMobile: "",
+    password: "",
+    name: "",
+    phone: "",
+    agreeTerms: false,
+  });
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, agreeTerms: e.target.checked });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isLogin) {
+      console.log("Login Data:", formData);
+    } else {
+      console.log("Sign Up Data:", formData);
+    }
+  };
+
+  return (
+    <motion.div
+      className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="bg-light-bg dark:bg-dark-bg min-h-[70vh] h-[70vh] mx-4 sm:mx-6 md:mx-8 rounded-xl shadow-lg w-full max-w-5xl p-8 gap-6 relative overflow-auto">
+        {/* Close Button */}
+        <button
+          onClick={() => setShowLogin(false)}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400"
+        >
+          <X size={24} />
+        </button>
+
+        <div className="mt-2 p-2 grid grid-cols-1 md:grid-cols-2">
+          {/* Left Column */}
+          <motion.div
+            className="flex flex-col justify-center md:bg-gradient-to-t from-light-bg via-light-card to-light-bg md:dark:bg-gradient-to-t dark:from-dark-bg dark:via-dark-card/10 dark:to-dark-bg items-center space-y-0 md:space-y-4 h-auto border-b dark:border-gray-600 border-dashed md:border-0"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="flex flex-col items-center justify-center">
+              <h2 className="text-2xl sm:text-3xl md:text-3xl font-bold text-gray-800 dark:text-gray-100">
+                {isLogin ? "Welcome Back!" : "Join Us Today!"}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mt-2 px-2 hidden md:block">
+                {isLogin
+                  ? "Sign in to access your account and explore more features."
+                  : "Sign up to get started and enjoy exclusive benefits."}
+              </p>
+            </div>
+            <img
+              src={images.people}
+              alt="Welcome"
+              className="w-40 h-40 md:w-full md:h-auto rounded-lg"
+            />
+          </motion.div>
+
+          {/* Right Column */}
+          <motion.div
+            className="flex items-start justify-center w-full"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="flex flex-col mt-4 md:mt-0 md:mx-6 md:px-6 w-full">
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100  text-left">
+                {isLogin ? "Sign In" : "Sign Up"}
+              </h2>
+
+              {/* Toggle Login/Signup */}
+              <p className="text-sm text-start text-gray-600 dark:text-gray-400 mt-2  mb-4 md:mb-6">
+                {isLogin ? (
+                  <>
+                    Don't have an account?{" "}
+                    <button
+                      onClick={() => setIsLogin(false)}
+                      className="text-light-primary dark:text-dark-primary hover:underline"
+                    >
+                      Sign up here
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Already have an account?{" "}
+                    <button
+                      onClick={() => setIsLogin(true)}
+                      className="text-light-primary dark:text-dark-primary hover:underline"
+                    >
+                      Sign in here
+                    </button>
+                  </>
+                )}
+              </p>
+              <form
+                onSubmit={handleSubmit}
+                className="space-y-3 md:space-y-4 lg:space-y-5 flex-grow flex flex-col justify-center w-full"
+              >
+                {/* Common Fields */}
+                <div className="relative">
+                  <label
+                    htmlFor="emailOrMobile"
+                    className="block text-sm text-gray-600 dark:text-gray-400 mb-1"
+                  >
+                    Email
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="emailOrMobile"
+                      id="emailOrMobile"
+                      value={formData.emailOrMobile}
+                      onChange={handleChange}
+                      placeholder="Enter your email"
+                      className={`form-input`}
+                      required
+                    />
+                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 md:w-6 md:h-6 text-light-textSecondary dark:text-dark-textSecondary" />
+                  </div>
+                </div>
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="block text-sm text-gray-600 dark:text-gray-400 mb-1"
+                  >
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      name="password"
+                      id="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Enter your password"
+                      className={`form-input`}
+                      required
+                    />
+                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 md:w-6 md:h-6 text-light-textSecondary dark:text-dark-textSecondary" />
+                  </div>
+                </div>
+
+                {/* Sign Up Additional Fields */}
+                {!isLogin && (
+                  <>
+                    <div>
+                      <label
+                        htmlFor="name"
+                        className="block text-sm text-gray-600 dark:text-gray-400 mb-1"
+                      >
+                        Full Name
+                      </label>
+                      <div className="relative">
+                        {" "}
+                        <input
+                          type="text"
+                          name="name"
+                          id="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          placeholder="Enter your full name"
+                          className={`form-input`}
+                          required
+                        />
+                        <Signature className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 md:w-6 md:h-6 text-light-textSecondary dark:text-dark-textSecondary" />
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="phone"
+                        className="block text-sm text-gray-600 dark:text-gray-400 mb-1"
+                      >
+                        Phone Number
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="tel"
+                          name="phone"
+                          id="phone"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          placeholder="Enter your phone number"
+                          className={`form-input`}
+                          required
+                        />
+                        <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 md:w-6 md:h-6 text-light-textSecondary dark:text-dark-textSecondary" />
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        name="agreeTerms"
+                        id="agreeTerms"
+                        checked={formData.agreeTerms}
+                        onChange={handleCheckboxChange}
+                        className="h-4 w-4 text-blue-500 rounded border-gray-300"
+                      />
+                      <label
+                        htmlFor="agreeTerms"
+                        className="text-sm text-gray-600 dark:text-gray-400"
+                      >
+                        I agree to the{" "}
+                        <a
+                          href="#"
+                          onClick={() => {
+                            navigate("/terms"), setShowLogin(false);
+                          }}
+                          className="text-blue-500 underline"
+                        >
+                          Terms and Conditions
+                        </a>
+                      </label>
+                    </div>
+                  </>
+                )}
+
+                {/* Submit Button */}
+                <div className="">
+                  <button
+                    type="submit"
+                    className="w-full py-2 mt-2 md:py-3 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 dark:bg-gradient-to-l dark:from-blue-400 dark:via-blue-600 dark:to-indigo-700   filter brightness-125 hover:filter hover:brightness-100 rounded-lg text-white transition-all duration-300"
+                  >
+                    {isLogin ? "Sign In" : "Sign Up"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+export default LoginPopup;

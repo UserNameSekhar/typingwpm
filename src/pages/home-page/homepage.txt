@@ -1,0 +1,81 @@
+import React from "react";
+import ContentSection from "../../components/layout/ContentSection";
+import Footer from "../../components/layout/Footer";
+import HeroSection from "../../components/layout/HeroSection";
+
+interface HomePageProps{
+  selectedLanguage: string
+}
+
+const HomePage: React.FC<HomePageProps> = ({selectedLanguage}) => {
+  return (
+    <div className="w-full bg-light-bg dark:bg-dark-bg text-light-textPrimary dark:text-dark-textPrimary">
+      {/* Hero Section */}
+      <HeroSection selectedLanguage={selectedLanguage}/>
+
+      {/* Sections */}
+      <main className="mx-4 md:mx-0">
+        <ContentSection
+          id="upcoming-movies"
+          title={`Upcoming ${selectedLanguage} Movies`}
+        />
+        <ContentSection
+          id="occasion-movies"
+          title="Occasion Movies"
+        />
+        <ContentSection
+          id="top-actors"
+          title="Top Actors"
+        />
+        <ContentSection
+          id="top-directors"
+          title="Top Directors"
+        />
+        <ContentSection
+          id="top-musicians"
+          title="Top Musicians"
+        />
+        <ContentSection
+          id="top-actresses"
+          title="Top Actresses"
+        />
+      </main>
+
+      {/* Footer */}
+      <Footer />
+
+      {/* <ContentSection
+          id="upcoming-movies"
+          title={`Upcoming ${selectedLanguage} Movies`}
+          filterOptions={["All", "Action", "Comedy", "Drama"]}
+        />
+        <ContentSection
+          id="occasion-movies"
+          title="Occasion Movies"
+          filterOptions={["Festivals", "Holidays", "Special Events"]}
+        />
+        <ContentSection
+          id="top-actors"
+          title="Top Actors"
+          filterOptions={["Popularity", "Newcomers"]}
+        />
+        <ContentSection
+          id="top-directors"
+          title="Top Directors"
+          filterOptions={["Critically Acclaimed", "Popular"]}
+        />
+        <ContentSection
+          id="top-musicians"
+          title="Top Musicians"
+          filterOptions={["Albums", "Singles"]}
+        />
+        <ContentSection
+          id="top-actresses"
+          title="Top Actresses"
+          filterOptions={["Popularity", "Awards"]}
+        /> */}
+    </div>
+  );
+};
+
+export default HomePage;

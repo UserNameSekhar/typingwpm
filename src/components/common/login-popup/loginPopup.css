@@ -1,0 +1,227 @@
+/* Disable background scroll when popup is open */
+body.no-scroll {
+    overflow: hidden;
+  }
+  
+  /* General Popup Styles */
+  .login-popup-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5); /* Backdrop */
+    z-index: 1000;
+    padding: 20px;
+    -webkit-tap-highlight-color: transparent; /* Removes the default highlight color on touch */
+    -webkit-touch-callout: none; /* Prevents callout menu on long press */
+    -webkit-user-select: none; /* Prevents text selection */
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  .login-popup {
+    position: relative;
+    background-color: #f9f9f9; /* Light gray for professional look */
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    padding: 2rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    transform: translateY(-50px);
+    opacity: 0;
+    animation: popupOpen 0.5s forwards;
+  }
+  
+  @keyframes popupOpen {
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  /* Close Button */
+  .close-popup {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    color: #777;
+    cursor: pointer;
+    height: 26px;
+    width: 26px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    transition: color 0.3s ease;
+  }
+  
+  .close-popup:hover {
+    color: #000;
+  }
+  
+  /* Tabs with border-radius and smooth transitions */
+  .login-popup-tabs {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 1rem;
+  }
+  
+  .tab {
+    flex: 1;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    padding: 1rem 0;
+    cursor: pointer;
+    color: #555;
+    text-align: center;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border-radius: 12px;
+    
+  }
+  
+  .tab.active {
+    color: tomato;
+    font-weight: bold;
+  }
+  
+  .tab:hover {
+    background-color: rgba(255, 99, 71, 0.1); /* Light hover effect */
+  }
+  
+  /* Add transition effect when switching between forms */
+  .form-container {
+    position: relative;
+    transition: transform 0.6s ease-in-out;
+    display: flex;
+    width: 200%; /* Ensure width is double for smooth slide effect */
+  }
+  
+  .login-form,
+  .signup-form {
+    width: 50%; /* Each form takes half the width */
+    padding: 0 1rem;
+    transition: opacity 0.4s ease, transform 0.6s ease-in-out;
+  }
+  
+  /* Background slide effect */
+  .form-container.active-login {
+    transform: translateX(0);
+  }
+  
+  .form-container.active-signup {
+    transform: translateX(-50%);
+  }
+  
+  .form {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+  }
+  
+  .form-title {
+    color: #333;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .input-field {
+    width: 100%;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: #333;
+  }
+  
+  .input-field::placeholder {
+    color: #888;
+  }
+  
+  .form-button {
+    background-color: tomato;
+    width: 100%;
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .form-button:hover {
+    background-color: #e34234;
+  }
+
+  /* Terms and Conditions */
+.terms-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .terms-checkbox {
+    margin-right: 8px;
+  }
+  
+  .terms-label {
+    font-size: 0.9rem;
+    color: #333;
+  }
+  
+  .terms-label a {
+    color: tomato;
+    text-decoration: underline;
+  }
+  
+  .terms-label a:hover {
+    color: #e34234;
+  }
+  
+  /* Disable button when unchecked */
+  .form-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  
+  /* Responsive styles */
+  @media (max-width: 480px) {
+    .login-popup {
+      padding: 1.5rem;
+    }
+  
+    .tab {
+      font-size: 1rem;
+    }
+  
+    .form-title {
+      font-size: 1.5rem;
+    }
+  
+    .input-field {
+      font-size: 0.9rem;
+      padding: 0.65rem;
+    }
+  
+    .form-button {
+      font-size: 0.9rem;
+      padding: 0.65rem;
+    }
+  }
+  

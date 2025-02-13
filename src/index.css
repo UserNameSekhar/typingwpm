@@ -1,0 +1,89 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Outfit:wght@100..900&family=Prata&family=Revalia&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+  font-family: Outfit;
+  user-select: none;
+  touch-action: manipulation;
+  -ms-touch-action: manipulation;
+}
+
+body::-webkit-scrollbar {
+  display: none; /* Hide scrollbar */
+  font-family: "Roboto", sans-serif;
+}
+
+/* Primary Button Utility */
+.btn-primary {
+  @apply bg-light-primary text-white py-2 px-6 rounded-lg hover:bg-light-accent focus:outline-none focus:ring-2 focus:ring-light-primary dark:bg-dark-primary dark:hover:bg-dark-accent;
+}
+
+.form-input {
+  @apply w-full px-2 pl-12 py-2 md:py-3 text-light-textPrimary dark:text-dark-textPrimary bg-transparent backdrop-blur-md border dark:border-gray-700 rounded-lg focus:ring-2 hover:ring-2 hover:ring-indigo-200 dark:hover:ring-orange-300 focus:ring-indigo-600 dark:focus:ring-orange-600 focus:ring-opacity-50 focus:outline-none outline-none transition-all duration-300;
+}
+
+.contact-form-input {
+  @apply w-full px-3 py-2.5 md:px-4 md:py-3.5 rounded-lg bg-light-bg/70 dark:bg-dark-bg/70  border-2 border-gray-200 hover:border-gray-300 focus:border-gray-400 dark:border-gray-800 dark:hover:border-gray-700 dark:focus:border-gray-600 outline-none ring-0 transition-all duration-300 ease-in-out delay-75  text-gray-300 dark:text-gray-800 focus:text-light-textPrimary dark:focus:text-dark-textPrimary;
+}
+
+.btn3d {
+  @apply bg-transparent  text-light-textPrimary dark:text-dark-textPrimary px-3 py-1.5 rounded-lg 
+  shadow-[3px_3px_6px_rgba(250,250,250,0.7)_inset,_-2px_-2px_5px_rgba(1,1,1,0.2)_inset,_2px_2px_2px_rgba(3,3,3,0.3)] 
+  hover:shadow-[3px_3px_6px_rgba(255,255,255,0.8)_inset,_-2px_-2px_5px_rgba(1,1,1,0.2)_inset,_3px_3px_3px_rgba(1,1,1,0.4)] 
+  dark:shadow-[3px_3px_6px_rgba(1,1,1,0.7)_inset,_-2px_-2px_5px_rgba(255,255,255,0.2)_inset,_2px_2px_3px_rgba(0,0,0,0.5)] 
+  dark:hover:shadow-[3px_3px_6px_rgba(1,1,1,0.7)_inset,_-2px_-2px_5px_rgba(255,255,255,0.2)_inset,_4px_4px_6px_rgba(0,0,0,0.6)] 
+  dark:active:shadow-[3px_3px_6px_rgba(1,1,1,0.7)_inset,_-2px_-2px_5px_rgba(255,255,255,0.2)_inset,_2px_2px_2px_rgba(0,0,0,0.1)] 
+  transition-shadow duration-300 ease-in-out
+  active:shadow-[3px_3px_6px_rgba(250,250,250,0.7)_inset,_-2px_-2px_5px_rgba(1,1,1,0.2)_inset,_1px_1px_1px_rgba(0,0,0,0.1)];
+}
+.btn3d2 {
+  @apply bg-transparent  text-light-textPrimary dark:text-dark-textPrimary rounded-lg 
+  shadow-[3px_3px_6px_rgba(250,250,250,0.7)_inset,_-2px_-2px_5px_rgba(1,1,1,0.2)_inset,_2px_2px_2px_rgba(3,3,3,0.2)] 
+  dark:shadow-[3px_3px_6px_rgba(1,1,1,0.7)_inset,_-2px_-2px_5px_rgba(255,255,255,0.2)_inset,_2px_2px_3px_rgba(0,0,0,0.5)];
+}
+/* 
+.btn3d2 {
+  @apply bg-transparent  text-light-textPrimary dark:text-dark-textPrimary rounded-lg 
+  shadow-[1px_1px_2px_rgba(8,8,8,0.1)_inset,_-1px_-1px_1px_rgba(1,1,1,0.2)_inset,_2px_2px_2px_rgba(3,3,3,0.2)] 
+  dark:shadow-[3px_3px_6px_rgba(1,1,1,0.7)_inset,_-2px_-2px_5px_rgba(255,255,255,0.2)_inset,_2px_2px_3px_rgba(0,0,0,0.5)];
+} */
+
+/* index.css or App.css */
+.slick-dots .custom-dots li button:before {
+  font-size: 10px;
+  color: #ff9e61;
+  margin-top: 0px;
+  padding-top: 0px;
+}
+
+.slick-dots .custom-dots li.slick-active button:before {
+  color: #ff6200;
+}
+
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  position: absolute;
+  left: -2px;
+  top: 2px;
+  transition: transform 0.3s ease-out;
+  animation: blink 1s steps(2, start) infinite;
+  
+}
+
+@keyframes blink {
+  from{
+    opacity: 1;
+  }
+  to {
+    opacity: 0.1;
+    /* visibility: hidden; */
+  }
+}
