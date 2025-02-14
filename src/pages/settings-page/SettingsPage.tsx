@@ -57,7 +57,13 @@ const SettingsPage: React.FC<SettingsProps> = ({ isDarkMode, toggleTheme }) => {
                     checked={emailNotifications}
                     onChange={() => setEmailNotifications(!emailNotifications)}
                   />
-                  <span className="w-11 h-6 bg-green-600 dark:bg-green-500 rounded-full"></span>
+                  <span
+                    className={`w-11 h-6 ${
+                      emailNotifications
+                        ? "bg-green-600 dark:bg-green-500"
+                        : "bg-gray-400 dark:bg-gray-600"
+                    } rounded-full`}
+                  ></span>
                   <span
                     className={`absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${
                       emailNotifications ? "transform translate-x-5" : ""
@@ -76,7 +82,13 @@ const SettingsPage: React.FC<SettingsProps> = ({ isDarkMode, toggleTheme }) => {
                     checked={smsNotifications}
                     onChange={() => setSmsNotifications(!smsNotifications)}
                   />
-                  <span className="w-11 h-6 bg-green-600 dark:bg-green-500 rounded-full"></span>
+                  <span
+                    className={`w-11 h-6 ${
+                      smsNotifications
+                        ? "bg-green-600 dark:bg-green-500"
+                        : "bg-gray-400 dark:bg-gray-600"
+                    } rounded-full`}
+                  ></span>
                   <span
                     className={`absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${
                       smsNotifications ? "transform translate-x-5" : ""
@@ -106,10 +118,10 @@ const SettingsPage: React.FC<SettingsProps> = ({ isDarkMode, toggleTheme }) => {
                     checked={isDarkMode}
                     onChange={toggleTheme}
                   />
-                  <span className="w-11 h-6 bg-green-600 dark:bg-green-500 rounded-full"></span>
+                  <span className="w-11 h-6 bg-gray-300 dark:bg-gray-700 rounded-full"></span>
                   <span
-                    className={`absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${
-                      isDarkMode ? "transform translate-x-5" : ""
+                    className={`absolute left-0.5 top-0.5 w-5 h-5 rounded-full transition-transform duration-200 ${
+                      isDarkMode ? "transform translate-x-5 bg-white" : "bg-gray-800"
                     }`}
                   ></span>
                 </label>

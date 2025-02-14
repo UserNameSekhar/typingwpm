@@ -1,1939 +1,5 @@
-import {
-  ArrowLeft,
-  CheckCircle,
-  RefreshCw,
-  Timer,
-  XCircle,
-} from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
 
-// Sample texts based on type selection
-const TEXT_SAMPLES: Record<string, string[]> = {
-  text: [
-    "The quick brown fox jumps over the lazy dog.",
-    "Typing speed improves with regular practice.",
-    "Every keystroke brings you closer to perfection.",
-  ],
-  numbers: ["12345 67890 24680 13579", "98765 43210 112233 445566"],
-  coding: [
-    "const sum = (a, b) => a + b;",
-    "function greet() { return 'Hello, World!'; }",
-    "let count = 0; while (count < 10) { count++; }",
-  ],
-  symbols: [
-    "@#$%^&*()_+{}|:?><",
-    "[{()}]~`!-=\\/.,",
-    "<html><body>Hello</body></html>",
-  ],
-};
-
-const TypingTestPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const type = searchParams.get("type") || "text";
-  const time = parseInt(searchParams.get("time")?.replace("min", "60") || "60");
-  const level = searchParams.get("level") || "Intermediate";
-  const navigate = useNavigate();
-
-  const [generatedText, setGeneratedText] = useState("");
-  const [typedText, setTypedText] = useState("");
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [errors, setErrors] = useState(0);
-  const [accuracy, setAccuracy] = useState(100);
-  const [wpm, setWpm] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(time);
-  const [testCompleted, setTestCompleted] = useState(false);
-  const [timeInSeconds, setTimeInSeconds] = useState<number>(0);
-
-  // Function to format time correctly
-  const formatTime = (seconds: number): string => {
-    if (seconds < 60) {
-        return `${seconds} sec`;
-    }
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return remainingSeconds > 0 ? `${minutes} min ${remainingSeconds} sec` : `${minutes} min`;
-};
-
-// Simulating a timer that increases the time for demonstration
-useEffect(() => {
-    const interval = setInterval(() => {
-        setTimeInSeconds((prevTime) => prevTime + 1);
-    }, 1000);
-
-    return () => clearInterval(interval);
-}, []);
-
-
-  // Generate text based on type
-  useEffect(() => {
-    setGeneratedText(
-      TEXT_SAMPLES[type]?.[
-        Math.floor(Math.random() * TEXT_SAMPLES[type].length)
-      ] || TEXT_SAMPLES.text[0]
-    );
-  }, [type]);
-
-  // Timer countdown
-  useEffect(() => {
-    if (!startTime || timeLeft <= 0) return;
-    const timer = setInterval(() => {
-      setTimeLeft((prev) =>
-        prev > 1 ? prev - 1 : (clearInterval(timer), setTestCompleted(true), 0)
-      );
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [startTime, timeLeft]);
-
-  // Typing logic
-  const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!startTime) setStartTime(Date.now());
-    const value = e.target.value;
-    setTypedText(value);
-
-    let errorCount = 0;
-    const correctText = generatedText.substring(0, value.length);
-    errorCount = [...value].reduce(
-      (acc, char, i) => (char !== correctText[i] ? acc + 1 : acc),
-      0
-    );
-
-    setErrors(errorCount);
-    setAccuracy(parseFloat(((1 - errorCount / value.length) * 100).toFixed(2)));
-    setWpm(
-      Math.round(
-        value.length / 5 / Math.max(1, (Date.now() - startTime!) / 60000)
-      )
-    );
-    setProgress((value.length / generatedText.length) * 100);
-  };
-
-  // Restart Test
-  const restartTest = () => {
-    setTypedText("");
-    setErrors(0);
-    setAccuracy(100);
-    setWpm(0);
-    setProgress(0);
-    setStartTime(null);
-    setTimeLeft(parseInt(time || "60"));
-    setTestCompleted(false);
-  };
-
-  return (
-    <div className="min-h-[calc(100vh-100px)] flex flex-col items-center justify-center px-6 py-12 text-gray-900 dark:text-gray-100">
-      
-      <div
-        className="max-w-4xl mx-auto w-full mb-4 border dark:border-none border-gray-50 bg-gray-100 dark:bg-gray-700 p-2 rounded-lg flex  items-center justify-evenly"
-        style={{
-          boxShadow:
-            "3px 3px 3px rgba(233,233,233,0.1) inset, -3px -3px 3px rgba(0,0,0,0.2) inset",
-        }}
-      >
-        {/* Type Badge */}
-        <span
-          className={`px-3 py-1 w-full text-white font-semibold overflow-hidden text-center capitalize rounded-l-lg  ${
-            type.toLowerCase() === "text"
-              ? "bg-green-600" // Text - Green
-              : type.toLowerCase() === "numbers"
-              ? "bg-blue-600" // Numbers - Blue
-              : type.toLowerCase() === "coding"
-              ? "bg-purple-600" // Coding - Purple
-              : type.toLowerCase() === "symbols"
-              ? "bg-orange-600" // Symbols - Orange
-              : "bg-gray-500" // Default - Gray
-          }`}
-        >
-          {type}
-        </span>
-
-        {/* Level Badge */}
-        <span
-          className={`px-3 py-1 w-full text-white font-semibold overflow-hidden text-center capitalize  ${
-            level.toLowerCase() === "basic"
-              ? "bg-green-500" // Basic - Green
-              : level.toLowerCase() === "intermediate"
-              ? "bg-yellow-500" // Intermediate - Yellow
-              : level.toLowerCase() === "advanced"
-              ? "bg-red-500" // Advanced - Red
-              : "bg-gray-500" // Default - Gray
-          }`}
-        >
-          {level}
-        </span>
-
-        {/* Time Badge */}
-        <span
-          className={`px-3 py-1 w-full text-white font-semibold overflow-hidden text-center capitalize tracking-wide rounded-r-lg  ${
-            time === 30
-              ? "bg-blue-400" // 30sec - Light Blue
-              : time === 60
-              ? "bg-blue-500" // 1min - Medium Blue
-              : time === 120
-              ? "bg-blue-600" // 2min - Darker Blue
-              : time === 180
-              ? "bg-blue-700" // 3min - Darker Blue
-              : time === 300
-              ? "bg-blue-800" // 5min - Darkest Blue
-              : "bg-gray-500" // Default - Gray
-          }`}
-        >
-          {time > 30 ? `${Math.floor(time / 60)}min` : `${time}sec`}
-        </span>
-      </div>
-      <div className="max-w-4xl w-full bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-1 justify-center"
-          >
-            <ArrowLeft /> Go Back
-          </button>
-          <h2 className="text-2xl font-bold">Typing Test</h2>
-          <span className="flex items-center gap-2 text-gray-500">
-            <Timer className="w-5 h-5" />
-            {formatTime(timeInSeconds)}s
-          </span>
-        </div>
-
-        {/* Generated Text */}
-        <div className="bg-gray-200 dark:bg-gray-700 p-4 rounded-lg text-lg leading-relaxed select-none">
-          {generatedText.split("").map((char, index) => (
-            <span
-              key={index}
-              className={`${
-                typedText[index]
-                  ? typedText[index] === char
-                    ? "text-green-500"
-                    : "text-red-500"
-                  : "text-gray-600"
-              }`}
-            >
-              {char}
-            </span>
-          ))}
-        </div>
-
-        {/* Typing Input */}
-        {!testCompleted ? (
-          <input
-            type="text"
-            value={typedText}
-            onChange={handleTyping}
-            className="w-full mt-4 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
-            placeholder="Start typing here..."
-            autoFocus
-          />
-        ) : (
-          <div className="mt-4 text-center">
-            <p className="text-xl font-bold">Test Completed!</p>
-            <p className="text-gray-500">Check your results below.</p>
-          </div>
-        )}
-
-        {/* Progress Bar */}
-        <div className="relative mt-4 h-3 w-full bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-blue-500 transition-all"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        {/* Statistics */}
-        <div className="flex justify-between items-center mt-4">
-          <div className="flex items-center gap-2 text-green-500">
-            <CheckCircle className="w-5 h-5" />
-            <p>WPM: {wpm}</p>
-          </div>
-          <div className="flex items-center gap-2 text-blue-500">
-            <CheckCircle className="w-5 h-5" />
-            <p>Accuracy: {accuracy}%</p>
-          </div>
-          <div className="flex items-center gap-2 text-red-500">
-            <XCircle className="w-5 h-5" />
-            <p>Errors: {errors}</p>
-          </div>
-        </div>
-
-        {/* Restart Button */}
-        <button
-          onClick={restartTest}
-          className="mt-6 w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg flex items-center justify-center gap-2 transition-all"
-        >
-          <RefreshCw className="w-5 h-5" />
-          Restart Test
-        </button>
-      </div>
-    </div>
-  );
-};
-
-export default TypingTestPage;
-
-
-//Version 2
-
-import { ArrowLeft, CircleCheckBig, RefreshCcw, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { typingTestConfig } from "../../config/typingConfig";
-
-export default function TypingTestPage() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const params = new URLSearchParams(location.search);
-  const type = params.get("type") || "Text";
-  const level = params.get("level") || "Basic";
-  const timeLimit =
-    parseInt(params.get("time")?.replace("min", "") || "1") * 60;
-
-  const [paragraphs, setParagraphs] = useState<string[][]>([]);
-  const [currentParaIndex, setCurrentParaIndex] = useState(0);
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [userInput, setUserInput] = useState<string>("");
-  const [errors, setErrors] = useState(0);
-  const [mistakenWords, setMistakenWords] = useState<string[]>([]);
-  const [totalWordsTyped, setTotalWordsTyped] = useState(0);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
-  const [wpm, setWpm] = useState<number>(0);
-  const [accuracy, setAccuracy] = useState<number>(0);
-  const [completed, setCompleted] = useState<boolean>(false);
-
-  useEffect(() => {
-    fetchNewParagraph();
-  }, [type, level]);
-
-  useEffect(() => {
-    if (startTime && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
-      setCompleted(true);
-    }
-  }, [timeLeft, startTime]);
-
-  const fetchNewParagraph = () => {
-    const typeKey = Object.keys(typingTestConfig).find(
-      (key) => key.toLowerCase() === type.toLowerCase()
-    );
-    if (!typeKey) {
-      setParagraphs([["Error: Invalid type."]]);
-      return;
-    }
-
-    const levelKey = Object.keys(typingTestConfig[typeKey]).find(
-      (key) => key.toLowerCase() === level.toLowerCase()
-    );
-    if (!levelKey) {
-      setParagraphs([["Error: Invalid level."]]);
-      return;
-    }
-
-    const texts = typingTestConfig[typeKey][levelKey] ?? [];
-    if (texts.length > 0) {
-      const randomText = texts[Math.floor(Math.random() * texts.length)];
-      setParagraphs((prev) => [...prev, randomText.split(" ")]);
-      setCurrentWordIndex(0);
-      setUserInput("");
-    } else {
-      setParagraphs([["Error: No text found for this mode."]]);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (completed) return;
-    const value = e.target.value;
-    if (!startTime) setStartTime(Date.now());
-    setUserInput(value);
-
-    const currentParagraph = paragraphs[currentParaIndex];
-    const currentWord = currentParagraph[currentWordIndex];
-
-    let isWordCorrect = value.trim() === currentWord;
-    let newErrors = 0;
-
-    // Live character validation
-    for (let i = 0; i < value.length; i++) {
-      if (value[i] !== currentWord[i]) newErrors++;
-    }
-
-    if (value.includes(" ")) {
-      setTotalWordsTyped((prev) => prev + 1);
-
-      // If word is incorrect, count it as a mistake
-      if (!isWordCorrect) {
-        setErrors(errors + 1);
-        setMistakenWords((prev) => [...prev, currentWord]);
-      }
-
-      setUserInput("");
-      setCurrentWordIndex((prev) => prev + 1);
-
-      // Load next paragraph if the current one is done
-      if (currentWordIndex + 1 >= currentParagraph.length) {
-        setCurrentParaIndex((prev) => prev + 1);
-        fetchNewParagraph();
-      }
-    }
-
-    // Live WPM Calculation
-    const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
-    setWpm(Math.round(totalWordsTyped / (minutesElapsed || 1)));
-
-    // Live Accuracy Calculation
-    const totalTypedWords = totalWordsTyped + 1;
-    setAccuracy(
-      Math.max(
-        0,
-        Math.round(((totalTypedWords - errors) / totalTypedWords) * 100)
-      )
-    );
-  };
-
-  const restartTest = () => {
-    setCurrentParaIndex(0);
-    setCurrentWordIndex(0);
-    setUserInput("");
-    setErrors(0);
-    setMistakenWords([]);
-    setStartTime(null);
-    setTimeLeft(timeLimit);
-    setWpm(0);
-    setAccuracy(0);
-    setCompleted(false);
-    setTotalWordsTyped(0);
-    setParagraphs([]);
-    fetchNewParagraph();
-  };
-
-  return (
-    <section className="min-h-[calc(100vh-100px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 md:py-10 text-light-textPrimary dark:text-dark-textPrimary">
-      <div className="w-full max-w-3xl mx-auto  mb-6 p-4 px-0 pb-0 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
-        <div className="flex justify-between px-2 md:px-4">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-1 text-light-textSecondary dark:text-dark-textSecondary hover:text-light-textPrimary dark:hover:text-dark-textPrimary transition-all duration-200 ease-in-out"
-          >
-            <ArrowLeft size={18} /> Go Back
-          </button>
-          <h2 className="text-2xl md:text-3xl font-bold text-light-textPrimary dark:text-dark-textPrimary text-center">
-            Typing Speed Test
-          </h2>
-          <button
-            onClick={restartTest}
-            className="flex items-center gap-1 text-light-textSecondary dark:text-dark-textSecondary hover:text-light-textPrimary dark:hover:text-dark-textPrimary transition-all duration-200 ease-in-out"
-          >
-            <RefreshCcw size={18} /> New Test
-          </button>
-        </div>
-        <div className="grid grid-cols-3 mt-6">
-          <div className="flex flex-col items-center justify-center gap-1 border-r-2 rounded-l-2xl bg-gradient-to-t  from-red-50 dark:from-red-500/10 via-transparent to-transparent border-gray-200 dark:border-gray-700 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg xl:text-xl font-extrabold capitalize  ${
-                type.toLowerCase() === "text"
-                  ? "text-green-600" // Text - Green
-                  : type.toLowerCase() === "numbers"
-                  ? "text-blue-600" // Numbers - Blue
-                  : type.toLowerCase() === "coding"
-                  ? "text-purple-600" // Coding - Purple
-                  : type.toLowerCase() === "symbols"
-                  ? "text-orange-600" // Symbols - Orange
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {type}
-            </span>
-            <span className="text-xs md:text-sm lg:text-base font-semibold">
-              Type
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1 border-r-2 bg-gradient-to-t  from-yellow-50 dark:from-yellow-500/10 via-transparent to-transparent border-gray-200 dark:border-gray-700 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg xl:text-xl font-extrabold capitalize ${
-                level.toLowerCase() === "basic"
-                  ? "text-green-500" // Basic - Green
-                  : level.toLowerCase() === "intermediate"
-                  ? "text-yellow-500" // Intermediate - Yellow
-                  : level.toLowerCase() === "advanced"
-                  ? "text-red-500" // Advanced - Red
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {level}
-            </span>
-            <span className="text-xs md:text-sm lg:text-base font-semibold">
-              Level
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1 rounded-r-2xl bg-gradient-to-t  from-indigo-50 dark:from-indigo-500/10 via-transparent to-transparent border-gray-200 dark:border-gray-700 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg xl:text-xl font-extrabold capitalize ${
-                timeLimit === 30
-                  ? "text-blue-400" // 30sec - Light Blue
-                  : timeLimit === 60
-                  ? "text-blue-500" // 1min - Medium Blue
-                  : timeLimit === 120
-                  ? "text-blue-600" // 2min - Darker Blue
-                  : timeLimit === 180
-                  ? "text-blue-700" // 3min - Darker Blue
-                  : timeLimit === 300
-                  ? "text-blue-800" // 5min - Darkest Blue
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {timeLimit / 60}min
-            </span>
-            <span className="text-xs md:text-sm lg:text-base font-semibold">
-              Time Limit
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full max-w-3xl mx-auto mb-6 p-4 md:p-6 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
-        {completed ? (
-          <div className="flex items-center justify-center gap-1 md:gap-2">
-            <CircleCheckBig className="text-green-600 dark:text-green-500" />
-            <span className="text-lg md:text-xl lg:text-2xl text-green-600 dark:text-green-500 font-semibold">
-              Test Completed
-            </span>
-          </div>
-        ) : (
-          <div className="grid grid-cols-4">
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {wpm}
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-yellow-500 dark:text-yellow-400 font-semibold">
-                WPM
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {accuracy}%
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-green-600 dark:text-green-500 font-semibold">
-                Accuracy
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {errors}
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-red-600 dark:text-red-500 font-semibold">
-                Errors
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {timeLeft}s
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-indigo-600 dark:text-indigo-500 font-semibold">
-                Time Left
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {!completed ? (
-        <div className="w-full max-w-3xl mx-auto text-wrap overflow-hidden mb-6 p-4 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
-          {paragraphs.map((para, pIndex) => (
-            <p
-              key={pIndex}
-              className="mb-4 text-wrap break-normal whitespace-normal"
-            >
-              {para.map((word, wIndex) => {
-                let wordClass =
-                  "text-light-textSecondary dark:text-dark-textSecondary";
-                if (
-                  pIndex < currentParaIndex ||
-                  (pIndex === currentParaIndex && wIndex < currentWordIndex)
-                ) {
-                  wordClass = "text-green-500";
-                } else if (
-                  pIndex === currentParaIndex &&
-                  wIndex === currentWordIndex
-                ) {
-                  wordClass =
-                    userInput.trim() === word
-                      ? "text-green-600 dark:text-green-600"
-                      : "text-red-600 dark:text-red-500";
-                }
-                return (
-                  <span
-                    key={wIndex}
-                    className={`mr-2 text-lg font-medium ${wordClass} inline-block`}
-                  >
-                    {word}
-                  </span>
-                );
-              })}
-            </p>
-          ))}
-          <input
-            type="text"
-            value={userInput}
-            onChange={handleInputChange}
-            placeholder={startTime ? "" : "Start Typing..."}
-            className="w-full p-4 font-semibold border-b-2 border-gray-200 hover:border-gray-400 focus:border-gray-500 dark:border-gray-700 dark:hover:border-gray-500 dark:focus:border-gray-400 outline-none rounded-lg text-lg text-center bg-white dark:bg-gray-900 whitespace-normal transition-all ease-in-out duration-300 delay-75"
-          />
-        </div>
-      ) : (
-        <div className="w-full max-w-3xl mx-auto mb-6 p-8 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300">
-          <div className="flex items-center justify-between border-b pb-3 mb-4 border-gray-300 dark:border-gray-700">
-            <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white ">
-              Test Results
-            </h3>
-
-            <button
-              onClick={restartTest}
-              className=" bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center justify-center text-lg font-semibold shadow-md transition-all duration-300"
-            >
-              <RefreshCw className="mr-2 w-5 h-5" /> Restart Test
-            </button>
-          </div>
-
-          <div className="space-y-2 text-lg text-gray-700 dark:text-gray-300">
-            <p className="capitalize">
-              <strong className="text-gray-900 dark:text-white capitalize">
-                Type:
-              </strong>{" "}
-              {type}
-            </p>
-            <p className="capitalize">
-              <strong className="text-gray-900 dark:text-white capitalize">
-                Level:
-              </strong>{" "}
-              {level}
-            </p>
-            <p className="capitalize">
-              <strong className="text-gray-900 dark:text-white capitalize">
-                Time:
-              </strong>{" "}
-              {timeLimit}sec
-            </p>
-            <p>
-              <strong className="text-gray-900 dark:text-white">
-                Your Speed:
-              </strong>{" "}
-              <span className="text-green-600 dark:text-green-500 font-extrabold">
-                {Math.round(wpm * (accuracy / 100))} WPM
-              </span>
-            </p>
-            <p>
-              <strong className="text-gray-900 dark:text-white">
-                Speed You Typed:
-              </strong>{" "}
-              {wpm} WPM
-            </p>
-            <p>
-              <strong className="text-gray-900 dark:text-white">
-                Accuracy:
-              </strong>{" "}
-              {accuracy}%
-            </p>
-            <p>
-              <strong className="text-gray-900 dark:text-white">
-                Total Errors:
-              </strong>{" "}
-              {errors}
-            </p>
-
-            <div>
-              <strong className="text-gray-900 dark:text-white">
-                Mistaken Words:
-              </strong>
-              {mistakenWords.length > 0 ? (
-                <ol className="mt-2 pl-10 list-decimal space-y-1 text-gray-800 dark:text-gray-300 max-h-[320px] overflow-auto">
-                  {mistakenWords.map((word, index) => (
-                    <li
-                      key={index}
-                      className="text-red-600 dark:text-red-400 font-medium"
-                    >
-                      {word}
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="mt-1 text-green-600 dark:text-green-400">None</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </section>
-  );
-}
-
-
-V3
-import { ArrowLeft, CircleCheckBig, RefreshCcw, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { typingTestConfig } from "../../config/typingConfig";
-
-export default function TypingTestPage() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const params = new URLSearchParams(location.search);
-  const type = params.get("type") || "Text";
-  const level = params.get("level") || "Basic";
-  const timeLimit =
-    parseInt(params.get("time")?.replace("min", "") || "1") * 60;
-
-  const [paragraphs, setParagraphs] = useState<string[][]>([]);
-  const [currentParaIndex, setCurrentParaIndex] = useState(0);
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [userInput, setUserInput] = useState<string>("");
-  const [errors, setErrors] = useState(0);
-  const [mistakenWords, setMistakenWords] = useState<string[]>([]);
-  const [totalWordsTyped, setTotalWordsTyped] = useState(0);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
-  const [wpm, setWpm] = useState<number>(0);
-  const [accuracy, setAccuracy] = useState<number>(0);
-  const [completed, setCompleted] = useState<boolean>(false);
-
-  useEffect(() => {
-    fetchNewParagraph();
-  }, [type, level]);
-
-  useEffect(() => {
-    if (startTime && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
-      setCompleted(true);
-    }
-  }, [timeLeft, startTime]);
-
-  const fetchNewParagraph = () => {
-    const typeKey = Object.keys(typingTestConfig).find(
-      (key) => key.toLowerCase() === type.toLowerCase()
-    );
-    if (!typeKey) {
-      setParagraphs([["Error: Invalid type."]]);
-      return;
-    }
-
-    const levelKey = Object.keys(typingTestConfig[typeKey]).find(
-      (key) => key.toLowerCase() === level.toLowerCase()
-    );
-    if (!levelKey) {
-      setParagraphs([["Error: Invalid level."]]);
-      return;
-    }
-
-    const texts = typingTestConfig[typeKey][levelKey] ?? [];
-    if (texts.length > 0) {
-      const randomText = texts[Math.floor(Math.random() * texts.length)];
-      setParagraphs((prev) => [...prev, randomText.split(" ")]);
-      setCurrentWordIndex(0);
-      setUserInput("");
-    } else {
-      setParagraphs([["Error: No text found for this mode."]]);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (completed) return;
-    const value = e.target.value;
-    if (!startTime) setStartTime(Date.now());
-    setUserInput(value);
-
-    const currentParagraph = paragraphs[currentParaIndex];
-    const currentWord = currentParagraph[currentWordIndex];
-
-    let isWordCorrect = value.trim() === currentWord;
-    let newErrors = 0;
-
-    // Live character validation
-    for (let i = 0; i < value.length; i++) {
-      if (value[i] !== currentWord[i]) newErrors++;
-    }
-
-    if (value.includes(" ")) {
-      setTotalWordsTyped((prev) => prev + 1);
-
-      // If word is incorrect, count it as a mistake
-      if (!isWordCorrect) {
-        setErrors(errors + 1);
-        setMistakenWords((prev) => [...prev, currentWord]);
-      }
-
-      setUserInput("");
-      setCurrentWordIndex((prev) => prev + 1);
-
-      // Load next paragraph if the current one is done
-      if (currentWordIndex + 1 >= currentParagraph.length) {
-        setCurrentParaIndex((prev) => prev + 1);
-        fetchNewParagraph();
-      }
-    }
-
-    // Live WPM Calculation
-    const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
-    setWpm(Math.round(totalWordsTyped / (minutesElapsed || 1)));
-
-    // Live Accuracy Calculation
-    const totalTypedWords = totalWordsTyped + 1;
-    setAccuracy(
-      Math.max(
-        0,
-        Math.round(((totalTypedWords - errors) / totalTypedWords) * 100)
-      )
-    );
-  };
-
-  const restartTest = () => {
-    setCurrentParaIndex(0);
-    setCurrentWordIndex(0);
-    setUserInput("");
-    setErrors(0);
-    setMistakenWords([]);
-    setStartTime(null);
-    setTimeLeft(timeLimit);
-    setWpm(0);
-    setAccuracy(0);
-    setCompleted(false);
-    setTotalWordsTyped(0);
-    setParagraphs([]);
-    fetchNewParagraph();
-  };
-
-  return (
-    <section className="min-h-[calc(100vh-100px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 md:py-10 text-light-textPrimary dark:text-dark-textPrimary">
-      <div className="w-full max-w-3xl mx-auto  mb-6 p-4 px-0 pb-0 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
-        <div className="flex justify-between px-2 md:px-4">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-1 text-light-textSecondary dark:text-dark-textSecondary hover:text-light-textPrimary dark:hover:text-dark-textPrimary transition-all duration-200 ease-in-out"
-          >
-            <ArrowLeft size={18} /> Go Back
-          </button>
-          <h2 className="text-2xl md:text-3xl font-bold text-light-textPrimary dark:text-dark-textPrimary text-center">
-            Typing Speed Test
-          </h2>
-          <button
-            onClick={restartTest}
-            className="flex items-center gap-1 text-light-textSecondary dark:text-dark-textSecondary hover:text-light-textPrimary dark:hover:text-dark-textPrimary transition-all duration-200 ease-in-out"
-          >
-            <RefreshCcw size={18} /> New Test
-          </button>
-        </div>
-        <div className="grid grid-cols-3 mt-6">
-          <div className="flex flex-col items-center justify-center gap-1 border-r-2 rounded-l-2xl bg-gradient-to-t  from-red-50 dark:from-red-500/10 via-transparent to-transparent border-gray-200 dark:border-gray-700 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg xl:text-xl font-extrabold capitalize  ${
-                type.toLowerCase() === "text"
-                  ? "text-green-600" // Text - Green
-                  : type.toLowerCase() === "numbers"
-                  ? "text-blue-600" // Numbers - Blue
-                  : type.toLowerCase() === "coding"
-                  ? "text-purple-600" // Coding - Purple
-                  : type.toLowerCase() === "symbols"
-                  ? "text-orange-600" // Symbols - Orange
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {type}
-            </span>
-            <span className="text-xs md:text-sm lg:text-base font-semibold">
-              Type
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1 border-r-2 bg-gradient-to-t  from-yellow-50 dark:from-yellow-500/10 via-transparent to-transparent border-gray-200 dark:border-gray-700 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg xl:text-xl font-extrabold capitalize ${
-                level.toLowerCase() === "basic"
-                  ? "text-green-500" // Basic - Green
-                  : level.toLowerCase() === "intermediate"
-                  ? "text-yellow-500" // Intermediate - Yellow
-                  : level.toLowerCase() === "advanced"
-                  ? "text-red-500" // Advanced - Red
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {level}
-            </span>
-            <span className="text-xs md:text-sm lg:text-base font-semibold">
-              Level
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1 rounded-r-2xl bg-gradient-to-t  from-indigo-50 dark:from-indigo-500/10 via-transparent to-transparent border-gray-200 dark:border-gray-700 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg xl:text-xl font-extrabold capitalize ${
-                timeLimit === 30
-                  ? "text-blue-400" // 30sec - Light Blue
-                  : timeLimit === 60
-                  ? "text-blue-500" // 1min - Medium Blue
-                  : timeLimit === 120
-                  ? "text-blue-600" // 2min - Darker Blue
-                  : timeLimit === 180
-                  ? "text-blue-700" // 3min - Darker Blue
-                  : timeLimit === 300
-                  ? "text-blue-800" // 5min - Darkest Blue
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {timeLimit / 60}min
-            </span>
-            <span className="text-xs md:text-sm lg:text-base font-semibold">
-              Time Limit
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full max-w-3xl mx-auto mb-6 p-4 md:p-6 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
-        {completed ? (
-          <div className="flex items-center justify-center gap-1 md:gap-2">
-            <CircleCheckBig className="text-green-600 dark:text-green-500" />
-            <span className="text-lg md:text-xl lg:text-2xl text-green-600 dark:text-green-500 font-semibold">
-              Test Completed
-            </span>
-          </div>
-        ) : (
-          <div className="grid grid-cols-4">
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {wpm}
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-yellow-500 dark:text-yellow-400 font-semibold">
-                WPM
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {accuracy}%
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-green-600 dark:text-green-500 font-semibold">
-                Accuracy
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {errors}
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-red-600 dark:text-red-500 font-semibold">
-                Errors
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {timeLeft}s
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-indigo-600 dark:text-indigo-500 font-semibold">
-                Time Left
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {!completed ? (
-        <div className="w-full max-w-3xl mx-auto text-wrap overflow-hidden mb-6 p-4 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
-          {paragraphs.map((para, pIndex) => (
-           <p key={pIndex} className="mb-4 text-wrap break-normal whitespace-normal">
-           {para.map((word, wIndex) => {
-             let wordClass = "text-light-textSecondary dark:text-dark-textSecondary"; // Default color
-     
-             const typedWords = userInput.trim().split(/\s+/); // ✅ Fix: Split by spaces
-             const isTyped = pIndex < currentParaIndex || (pIndex === currentParaIndex && wIndex < currentWordIndex);
-     
-             // ✅ Already Typed Words → Green if correct, Red if incorrect
-             if (isTyped) {
-               const typedWord = typedWords[wIndex] || "";
-               wordClass = typedWord === word ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500";
-             }
-     
-             // ✅ Next Word To Type → Primary Color (blue)
-             if (pIndex === currentParaIndex && wIndex === currentWordIndex) {
-               wordClass = "text-blue-600 dark:text-blue-400 font-bold";
-             }
-     
-             return (
-               <span key={wIndex} className={`mr-2 text-lg font-medium ${wordClass} inline-block`}>
-                 {word}
-               </span>
-             );
-           })}
-         </p>
-        ))}
-
-          {/* <p className="mb-4 text-wrap break-normal whitespace-normal">
-            {paragraphs[currentParaIndex]?.map((word, index) => {
-              let wordClass = "text-gray-500"; // Default color for untyped words
-
-              if (index < currentWordIndex) {
-                // Correctly typed words
-                if (!mistakenWords.includes(word)) {
-                  wordClass = "text-green-500 font-bold"; // Green for correct words
-                } else {
-                  wordClass = "text-red-500 font-bold"; // Red for incorrect words
-                }
-              } else if (index === currentWordIndex) {
-                wordClass = "text-primary font-bold underline"; // Blue for next word
-              }
-
-              return (
-                <span key={index} className={`${wordClass} mx-1`}>
-                  {word}
-                </span>
-              );
-            })}
-          </p> */}
-
-          {/* Typing Input */}
-          <input
-            type="text"
-            value={userInput}
-            onChange={handleInputChange}
-            placeholder={startTime ? "" : "Start Typing..."}
-            className="w-full p-4 font-semibold border-b-2 border-gray-200 hover:border-gray-400 focus:border-gray-500 dark:border-gray-700 dark:hover:border-gray-500 dark:focus:border-gray-400 outline-none rounded-lg text-lg text-center bg-white dark:bg-gray-900 whitespace-normal transition-all ease-in-out duration-300 delay-75"
-          />
-        </div>
-      ) : (
-        <div className="w-full max-w-3xl mx-auto mb-6 p-8 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300">
-          <div className="flex items-center justify-between border-b pb-3 mb-4 border-gray-300 dark:border-gray-700">
-            <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white ">
-              Test Results
-            </h3>
-
-            <button
-              onClick={restartTest}
-              className=" bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center justify-center text-lg font-semibold shadow-md transition-all duration-300"
-            >
-              <RefreshCw className="mr-2 w-5 h-5" /> Restart Test
-            </button>
-          </div>
-
-          <div className="space-y-2 text-lg text-gray-700 dark:text-gray-300">
-            <p className="capitalize">
-              <strong className="text-gray-900 dark:text-white capitalize">
-                Type:
-              </strong>{" "}
-              {type}
-            </p>
-            <p className="capitalize">
-              <strong className="text-gray-900 dark:text-white capitalize">
-                Level:
-              </strong>{" "}
-              {level}
-            </p>
-            <p className="capitalize">
-              <strong className="text-gray-900 dark:text-white capitalize">
-                Time:
-              </strong>{" "}
-              {timeLimit}sec
-            </p>
-            <p>
-              <strong className="text-gray-900 dark:text-white">
-                Your Speed:
-              </strong>{" "}
-              <span className="text-green-600 dark:text-green-500 font-extrabold">
-                {Math.round(wpm * (accuracy / 100))} WPM
-              </span>
-            </p>
-            <p>
-              <strong className="text-gray-900 dark:text-white">
-                Speed You Typed:
-              </strong>{" "}
-              {wpm} WPM
-            </p>
-            <p>
-              <strong className="text-gray-900 dark:text-white">
-                Accuracy:
-              </strong>{" "}
-              {accuracy}%
-            </p>
-            <p>
-              <strong className="text-gray-900 dark:text-white">
-                Total Errors:
-              </strong>{" "}
-              {errors}
-            </p>
-
-            <div>
-              <strong className="text-gray-900 dark:text-white">
-                Mistaken Words:
-              </strong>
-              {mistakenWords.length > 0 ? (
-                <ol className="mt-2 pl-10 list-decimal space-y-1 text-gray-800 dark:text-gray-300 max-h-[320px] overflow-auto">
-                  {mistakenWords.map((word, index) => (
-                    <li
-                      key={index}
-                      className="text-red-600 dark:text-red-400 font-medium"
-                    >
-                      {word}
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="mt-1 text-green-600 dark:text-green-400">None</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </section>
-  );
-}
-
-//V4
-import { ArrowLeft, CircleCheckBig, RefreshCcw, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { typingTestConfig } from "../../config/typingConfig";
-
-const TypingTestPage:React.FC = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const params = new URLSearchParams(location.search);
-  const type = params.get("type") || "Text";
-  const level = params.get("level") || "Basic";
-  const timeLimit =
-    parseInt(params.get("time")?.replace("min", "") || "1") * 60;
-
-  const [paragraphs, setParagraphs] = useState<string[][]>([]);
-  const [currentParaIndex, setCurrentParaIndex] = useState(0);
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [userInput, setUserInput] = useState<string>("");
-  const [errors, setErrors] = useState(0);
-  const [mistakenWords, setMistakenWords] = useState<string[]>([]);
-  const [totalWordsTyped, setTotalWordsTyped] = useState(0);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
-  const [wpm, setWpm] = useState<number>(0);
-  const [accuracy, setAccuracy] = useState<number>(0);
-  const [completed, setCompleted] = useState<boolean>(false);
-
-  useEffect(() => {
-    fetchNewParagraph();
-  }, [type, level]);
-
-  useEffect(() => {
-    if (startTime && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
-      setCompleted(true);
-    }
-  }, [timeLeft, startTime]);
-
-  const fetchNewParagraph = () => {
-    const typeKey = Object.keys(typingTestConfig).find(
-      (key) => key.toLowerCase() === type.toLowerCase()
-    );
-    if (!typeKey) {
-      setParagraphs([["Error: Invalid type."]]);
-      return;
-    }
-
-    const levelKey = Object.keys(typingTestConfig[typeKey]).find(
-      (key) => key.toLowerCase() === level.toLowerCase()
-    );
-    if (!levelKey) {
-      setParagraphs([["Error: Invalid level."]]);
-      return;
-    }
-
-    const texts = typingTestConfig[typeKey][levelKey] ?? [];
-    if (texts.length > 0) {
-      const randomText = texts[Math.floor(Math.random() * texts.length)];
-      setParagraphs((prev) => [...prev, randomText.split(" ")]);
-      setCurrentWordIndex(0);
-      setUserInput("");
-    } else {
-      setParagraphs([["Error: No text found for this mode."]]);
-    }
-  };
-
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (completed) return;
-    const value = e.target.value;
-    if (!startTime) setStartTime(Date.now());
-    setUserInput(value);
-
-    const currentParagraph = paragraphs[currentParaIndex];
-    const currentWord = currentParagraph[currentWordIndex];
-
-    let isWordCorrect = value.trim() === currentWord;
-    let newErrors = 0;
-
-    // Live character validation
-    for (let i = 0; i < value.length; i++) {
-      if (value[i] !== currentWord[i]) newErrors++;
-    }
-
-    if (value.includes(" ")) {
-      setTotalWordsTyped((prev) => prev + 1);
-
-      // If word is incorrect, count it as a mistake
-      if (!isWordCorrect) {
-        setErrors(errors + 1);
-        setMistakenWords((prev) => [...prev, currentWord]);
-      }
-
-      setUserInput("");
-      setCurrentWordIndex((prev) => prev + 1);
-
-      // Load next paragraph if the current one is done
-      if (currentWordIndex + 1 >= currentParagraph.length) {
-        setCurrentParaIndex((prev) => prev + 1);
-        fetchNewParagraph();
-      }
-    }
-
-    // Live WPM Calculation
-    const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
-    setWpm(Math.round(totalWordsTyped / (minutesElapsed || 1)));
-
-    // Live Accuracy Calculation
-    const totalTypedWords = totalWordsTyped + 1;
-    setAccuracy(
-      Math.max(
-        0,
-        Math.round(((totalTypedWords - errors) / totalTypedWords) * 100)
-      )
-    );
-  };
-
-  const restartTest = () => {
-    setCurrentParaIndex(0);
-    setCurrentWordIndex(0);
-    setUserInput("");
-    setErrors(0);
-    setMistakenWords([]);
-    setStartTime(null);
-    setTimeLeft(timeLimit);
-    setWpm(0);
-    setAccuracy(0);
-    setCompleted(false);
-    setTotalWordsTyped(0);
-    setParagraphs([]);
-    fetchNewParagraph();
-  };
-
-  return (
-    <section className="min-h-[calc(100vh-100px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 md:py-10 text-light-textPrimary dark:text-dark-textPrimary">
-      <div className="w-full max-w-3xl mx-auto  mb-6 p-4 px-0 pb-0 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
-        <div className="flex justify-between px-2 md:px-4">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-1 text-light-textSecondary dark:text-dark-textSecondary hover:text-light-textPrimary dark:hover:text-dark-textPrimary transition-all duration-200 ease-in-out"
-          >
-            <ArrowLeft size={18} /> Go Back
-          </button>
-          <h2 className="text-2xl md:text-3xl font-bold text-light-textPrimary dark:text-dark-textPrimary text-center">
-            Typing Speed Test
-          </h2>
-          <button
-            onClick={restartTest}
-            className="flex items-center gap-1 text-light-textSecondary dark:text-dark-textSecondary hover:text-light-textPrimary dark:hover:text-dark-textPrimary transition-all duration-200 ease-in-out"
-          >
-            <RefreshCcw size={18} /> New Test
-          </button>
-        </div>
-        <div className="grid grid-cols-3 mt-6">
-          <div className="flex flex-col items-center justify-center gap-1 border-r-2 rounded-l-2xl bg-gradient-to-t  from-red-50 dark:from-red-500/10 via-transparent to-transparent border-gray-200 dark:border-gray-700 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg xl:text-xl font-extrabold capitalize  ${
-                type.toLowerCase() === "text"
-                  ? "text-green-600" // Text - Green
-                  : type.toLowerCase() === "numbers"
-                  ? "text-blue-600" // Numbers - Blue
-                  : type.toLowerCase() === "coding"
-                  ? "text-purple-600" // Coding - Purple
-                  : type.toLowerCase() === "symbols"
-                  ? "text-orange-600" // Symbols - Orange
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {type}
-            </span>
-            <span className="text-xs md:text-sm lg:text-base font-semibold">
-              Type
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1 border-r-2 bg-gradient-to-t  from-yellow-50 dark:from-yellow-500/10 via-transparent to-transparent border-gray-200 dark:border-gray-700 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg xl:text-xl font-extrabold capitalize ${
-                level.toLowerCase() === "basic"
-                  ? "text-green-500" // Basic - Green
-                  : level.toLowerCase() === "intermediate"
-                  ? "text-yellow-500" // Intermediate - Yellow
-                  : level.toLowerCase() === "advanced"
-                  ? "text-red-500" // Advanced - Red
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {level}
-            </span>
-            <span className="text-xs md:text-sm lg:text-base font-semibold">
-              Level
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1 rounded-r-2xl bg-gradient-to-t  from-indigo-50 dark:from-indigo-500/10 via-transparent to-transparent border-gray-200 dark:border-gray-700 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg xl:text-xl font-extrabold capitalize ${
-                timeLimit === 30
-                  ? "text-blue-400" // 30sec - Light Blue
-                  : timeLimit === 60
-                  ? "text-blue-500" // 1min - Medium Blue
-                  : timeLimit === 120
-                  ? "text-blue-600" // 2min - Darker Blue
-                  : timeLimit === 180
-                  ? "text-blue-700" // 3min - Darker Blue
-                  : timeLimit === 300
-                  ? "text-blue-800" // 5min - Darkest Blue
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {timeLimit / 60}min
-            </span>
-            <span className="text-xs md:text-sm lg:text-base font-semibold">
-              Time Limit
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full max-w-3xl mx-auto mb-6 p-4 md:p-6 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
-        {completed ? (
-          <div className="flex items-center justify-center gap-1 md:gap-2">
-            <CircleCheckBig className="text-green-600 dark:text-green-500" />
-            <span className="text-lg md:text-xl lg:text-2xl text-green-600 dark:text-green-500 font-semibold">
-              Test Completed
-            </span>
-          </div>
-        ) : (
-          <div className="grid grid-cols-4">
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {wpm}
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-yellow-500 dark:text-yellow-400 font-semibold">
-                WPM
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {accuracy}%
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-green-600 dark:text-green-500 font-semibold">
-                Accuracy
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {errors}
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-red-600 dark:text-red-500 font-semibold">
-                Errors
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {timeLeft}s
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-indigo-600 dark:text-indigo-500 font-semibold">
-                Time Left
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {!completed ? (
-        <div className="w-full max-w-3xl mx-auto text-wrap overflow-hidden mb-6 p-4 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
-          {paragraphs.map((para, pIndex) => (
-            <p
-              key={pIndex}
-              className="mb-4 text-wrap break-normal whitespace-normal"
-            >
-              {para.map((word, wIndex) => {
-                let wordClass = "text-gray-500"; // Default color for untyped words
-
-                if (wIndex < currentWordIndex) {
-                  // Correctly typed words
-                  if (!mistakenWords.includes(word)) {
-                    wordClass = "text-green-500 font-bold"; // Green for correct words
-                  } else {
-                    wordClass = "text-red-500 font-bold"; // Red for incorrect words
-                  }
-                } else if (wIndex === currentWordIndex) {
-                  wordClass = "text-primary font-bold underline"; // Blue for next word
-                }
-
-                return (
-                  <span
-                    key={wIndex}
-                    className={`mr-2 text-lg font-medium ${wordClass} inline-block`}
-                  >
-                    {word}
-                  </span>
-                );
-              })}
-            </p>
-          ))}
-
-          {/* Typing Input */}
-          <input
-            type="text"
-            value={userInput}
-            onChange={handleInputChange}
-            placeholder={startTime ? "" : "Start Typing..."}
-            className="w-full p-4 font-semibold border-b-2 border-gray-200 hover:border-gray-400 focus:border-gray-500 dark:border-gray-700 dark:hover:border-gray-500 dark:focus:border-gray-400 outline-none rounded-lg text-lg text-center bg-white dark:bg-gray-900 whitespace-normal transition-all ease-in-out duration-300 delay-75"
-          />
-        </div>
-      ) : (
-        <div className="w-full max-w-3xl mx-auto mb-6 p-8 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300">
-          <div className="flex items-center justify-between border-b pb-3 mb-4 border-gray-300 dark:border-gray-700">
-            <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white ">
-              Test Results
-            </h3>
-
-            <button
-              onClick={restartTest}
-              className=" bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center justify-center text-lg font-semibold shadow-md transition-all duration-300"
-            >
-              <RefreshCw className="mr-2 w-5 h-5" /> Restart Test
-            </button>
-          </div>
-
-          <div className="space-y-2 text-lg text-gray-700 dark:text-gray-300">
-            <p className="capitalize">
-              <strong className="text-gray-900 dark:text-white capitalize">
-                Type:
-              </strong>{" "}
-              {type}
-            </p>
-            <p className="capitalize">
-              <strong className="text-gray-900 dark:text-white capitalize">
-                Level:
-              </strong>{" "}
-              {level}
-            </p>
-            <p className="capitalize">
-              <strong className="text-gray-900 dark:text-white capitalize">
-                Time:
-              </strong>{" "}
-              {timeLimit}sec
-            </p>
-            <p>
-              <strong className="text-gray-900 dark:text-white">
-                Your Speed:
-              </strong>{" "}
-              <span className="text-green-600 dark:text-green-500 font-extrabold">
-                {Math.round(wpm * (accuracy / 100))} WPM
-              </span>
-            </p>
-            <p>
-              <strong className="text-gray-900 dark:text-white">
-                Speed You Typed:
-              </strong>{" "}
-              {wpm} WPM
-            </p>
-            <p>
-              <strong className="text-gray-900 dark:text-white">
-                Accuracy:
-              </strong>{" "}
-              {accuracy}%
-            </p>
-            <p>
-              <strong className="text-gray-900 dark:text-white">
-                Total Errors:
-              </strong>{" "}
-              {errors}
-            </p>
-
-            <div>
-              <strong className="text-gray-900 dark:text-white">
-                Mistaken Words:
-              </strong>
-              {mistakenWords.length > 0 ? (
-                <ol className="mt-2 pl-10 list-decimal space-y-1 text-gray-800 dark:text-gray-300 max-h-[320px] overflow-auto">
-                  {mistakenWords.map((word, index) => (
-                    <li
-                      key={index}
-                      className="text-red-600 dark:text-red-400 font-medium"
-                    >
-                      {word}
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="mt-1 text-green-600 dark:text-green-400">None</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </section>
-  );
-};
-
-export default TypingTestPage;
-
-
-import { ArrowLeft, CircleCheckBig, RefreshCcw, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { typingTestConfig } from "../../config/typingConfig";
-
-const TypingTestPage: React.FC = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const params = new URLSearchParams(location.search);
-  const type = params.get("type") || "Text";
-  const level = params.get("level") || "Basic";
-  const timeLimit =
-    parseInt(params.get("time")?.replace("min", "") || "1") * 60;
-
-  const [paragraph, setParagraph] = useState<string[]>([]);
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [userInput, setUserInput] = useState<string>("");
-  const [errors, setErrors] = useState(0);
-  const [mistakenWords, setMistakenWords] = useState<string[]>([]);
-  const [totalWordsTyped, setTotalWordsTyped] = useState(0);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
-  const [minutesElapsed, setMinutesElapsed] = useState<number>(timeLimit);
-  const [wpm, setWpm] = useState<number>(0);
-  const [accuracy, setAccuracy] = useState<number>(0);
-  const [completed, setCompleted] = useState<boolean>(false);
-
-  useEffect(() => {
-    fetchNewParagraph();
-  }, [type, level]);
-
-  useEffect(() => {
-    if (startTime && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
-      setCompleted(true);
-    }
-  }, [timeLeft, startTime]);
-
-  const fetchNewParagraph = () => {
-    const typeKey = Object.keys(typingTestConfig).find(
-      (key) => key.toLowerCase() === type.toLowerCase()
-    );
-
-    if (!typeKey) {
-      setParagraph(["Error: Invalid type."]);
-      return;
-    }
-
-    const levelKey = Object.keys(typingTestConfig[typeKey]).find(
-      (key) => key.toLowerCase() === level.toLowerCase()
-    );
-
-    if (!levelKey) {
-      setParagraph(["Error: Invalid level."]);
-      return;
-    }
-
-    const texts = typingTestConfig[typeKey][levelKey] ?? [];
-    if (texts.length > 0) {
-      const randomText = texts[Math.floor(Math.random() * texts.length)];
-      setParagraph(randomText.split(" "));
-      setCurrentWordIndex(0);
-      setUserInput("");
-    } else {
-      setParagraph(["Error: No text found for this mode."]);
-    }
-  };
-
-  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   if (completed) return;
-  //   if (!startTime) setStartTime(Date.now());
-
-  //   const value = e.target.value;
-  //   setUserInput(value);
-
-  //   const currentWord = paragraph[currentWordIndex];
-  //   let newErrors = 0;
-
-  //   for (let i = 0; i < value.length; i++) {
-  //     if (value[i] !== currentWord[i]) newErrors++;
-  //   }
-
-  //   if (value.includes(" ")) {
-  //     if (value.trim() !== currentWord) {
-  //       setErrors(errors + 1);
-  //       setMistakenWords((prev) => [...prev, currentWord]);
-  //     }
-
-  //     setTotalWordsTyped((prev) => prev + 1);
-  //     setUserInput("");
-  //     setCurrentWordIndex((prev) => prev + 1);
-
-  //     if (currentWordIndex + 1 >= paragraph.length) {
-  //       fetchNewParagraph();
-  //     }
-  //   }
-
-  //   const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
-  //   setWpm(Math.round(totalWordsTyped / (minutesElapsed || 1)));
-
-  //   const totalTypedWords = totalWordsTyped + 1;
-  //   setAccuracy(
-  //     Math.max(
-  //       0,
-  //       Math.round(((totalTypedWords - errors) / totalTypedWords) * 100)
-  //     )
-  //   );
-  // };
-
-  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   if (completed) return;
-  //   if (!startTime) setStartTime(Date.now());
-
-  //   const value = e.target.value;
-  //   setUserInput(value);
-
-  //   const currentWord = paragraph[currentWordIndex];
-  //   const cleanedCurrentWord = currentWord.replace(/[^a-zA-Z0-9]/g, ""); // Remove punctuation
-  //   const cleanedUserInput = value.replace(/[^a-zA-Z0-9]/g, "");
-
-  //   let newErrors = 0;
-
-  //   for (let i = 0; i < cleanedUserInput.length; i++) {
-  //     if (cleanedUserInput[i] !== cleanedCurrentWord[i]) newErrors++;
-  //   }
-
-  //   if (value.includes(" ")) {
-  //     if (cleanedUserInput !== cleanedCurrentWord) {
-  //       setErrors((prev) => prev + 1);
-  //       setMistakenWords((prev) => [...prev, currentWord]);
-  //     }
-
-  //     setTotalWordsTyped((prev) => prev + 1);
-  //     setUserInput("");
-  //     setCurrentWordIndex((prev) => prev + 1);
-
-  //     if (currentWordIndex + 1 >= paragraph.length) {
-  //       fetchNewParagraph();
-  //     }
-  //   }
-
-  //   const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
-  //   const totalTypedWords = totalWordsTyped + 1;
-  //   const accuracy = Math.max(0, (totalTypedWords - errors) / totalTypedWords);
-
-  //   // **New WPM Calculation**
-  //   const correctWords = totalTypedWords - errors;
-  //   setWpm(Math.round((correctWords * accuracy) / (minutesElapsed || 1)));
-
-  //   // **Update Accuracy**
-  //   setAccuracy(Math.round(accuracy * 100));
-  // };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (completed) return;
-    if (!startTime) setStartTime(Date.now());
-
-    const value = e.target.value;
-    setUserInput(value);
-
-    const currentWord = paragraph[currentWordIndex];
-    const cleanedCurrentWord = currentWord.replace(/[^a-zA-Z0-9]/g, ""); // Remove punctuation
-    const cleanedUserInput = value.replace(/[^a-zA-Z0-9]/g, "");
-
-    let newErrors = 0;
-
-    for (let i = 0; i < cleanedUserInput.length; i++) {
-      if (cleanedUserInput[i] !== cleanedCurrentWord[i]) newErrors++;
-    }
-
-    if (value.includes(" ")) {
-      if (cleanedUserInput !== cleanedCurrentWord) {
-        setErrors((prev) => prev + 1);
-        setMistakenWords((prev) => [...prev, currentWord]);
-      }
-
-      setTotalWordsTyped((prev) => prev + 1);
-      setUserInput("");
-      setCurrentWordIndex((prev) => prev + 1);
-      setMinutesElapsed((Date.now() - (startTime || Date.now())) / 60000);
-
-      if (currentWordIndex + 1 >= paragraph.length) {
-        fetchNewParagraph();
-      }
-    }
-
-    // const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
-    const totalTypedWords = totalWordsTyped + 1;
-    const accuracy = Math.max(0, (totalTypedWords - errors) / totalTypedWords);
-
-    // **New WPM Calculation Based on Accuracy and Time**
-    const wpm = Math.round(
-      (totalTypedWords * accuracy) / (minutesElapsed || 1)
-    );
-
-    setWpm(wpm);
-    setAccuracy(Math.round(accuracy * 100));
-  };
-
-  const restartTest = () => {
-    setCurrentWordIndex(0);
-    setUserInput("");
-    setErrors(0);
-    setMistakenWords([]);
-    setStartTime(null);
-    setTimeLeft(timeLimit);
-    setWpm(0);
-    setAccuracy(0);
-    setCompleted(false);
-    setTotalWordsTyped(0);
-    fetchNewParagraph();
-  };
-
-  return (
-    <section className="min-h-[calc(100vh-100px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 md:py-10 text-light-textPrimary dark:text-dark-textPrimary">
-      <div className="w-full max-w-3xl mx-auto  mb-6 p-4 px-0 pb-0 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-none border border-gray-100 dark:border-gray-800 transition-all duration-300">
-        <div className="flex justify-between px-2 md:px-4">
-          <button
-            onClick={() => navigate("/")}
-            className="text-xs md:text-sm flex items-center gap-1 text-light-textSecondary dark:text-dark-textSecondary hover:text-light-textPrimary dark:hover:text-dark-textPrimary transition-all duration-200 ease-in-out"
-          >
-            <ArrowLeft size={18} /> Go Back
-          </button>
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-light-textPrimary dark:text-dark-textPrimary text-center">
-            Typing Speed Test
-          </h2>
-          <button
-            onClick={restartTest}
-            className="text-xs md:text-sm flex items-center gap-1 text-light-textSecondary dark:text-dark-textSecondary hover:text-light-textPrimary dark:hover:text-dark-textPrimary transition-all duration-200 ease-in-out"
-          >
-            <RefreshCcw size={18} /> New Test
-          </button>
-        </div>
-        <div className="grid grid-cols-3 mt-6">
-          <div className="flex flex-col items-center justify-center gap-1 border-r-2 rounded-l-2xl bg-gradient-to-t  from-orange-50/70 dark:from-orange-800/10 via-transparent to-transparent border-gray-100 dark:border-gray-800 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg xl:text-xl font-bold capitalize  ${
-                type.toLowerCase() === "text"
-                  ? "text-green-600 dark:text-green-500" // Text - Green
-                  : type.toLowerCase() === "numbers"
-                  ? "text-indigo-600 dark:text-indigo-500" // Numbers - Blue
-                  : type.toLowerCase() === "coding"
-                  ? "text-purple-600 dark:text-purple-500" // Coding - Purple
-                  : type.toLowerCase() === "symbols"
-                  ? "text-orange-600 dark:text-orange-500" // Symbols - Orange
-                  : "text-gray-500 dark:text-gray-400" // Default - Gray
-              }`}
-            >
-              {type}
-            </span>
-            <span className="text-xs md:text-sm lg:text-base font-semibold">
-              Type
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1 border-r-2 bg-gradient-to-t  from-purple-50 dark:from-indigo-900/10 via-transparent to-transparent border-gray-100 dark:border-gray-800 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg xl:text-xl font-bold capitalize ${
-                level.toLowerCase() === "basic"
-                  ? "text-green-600 dark:text-green-500" // Basic - Green
-                  : level.toLowerCase() === "intermediate"
-                  ? "text-orange-500 dark:text-orange-500" // Intermediate - Yellow
-                  : level.toLowerCase() === "advanced"
-                  ? "text-red-600 dark:text-red-500" // Advanced - Red
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {level}
-            </span>
-            <span className="text-xs md:text-sm lg:text-base font-semibold">
-              Level
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1 rounded-r-2xl bg-gradient-to-t  from-yellow-50 dark:from-yellow-800/10 via-transparent to-transparent pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg xl:text-xl font-bold capitalize ${
-                timeLimit === 60
-                  ? "text-blue-500 dark:text-yellow-500" // 1min - Medium Blue
-                  : timeLimit === 120
-                  ? "text-blue-600 dark:text-yellow-400" // 2min - Darker Blue
-                  : timeLimit === 180
-                  ? "text-blue-700 dark:text-yellow-300" // 3min - Darker Blue
-                  : timeLimit === 300
-                  ? "text-blue-800 dark:text-yellow-300" // 5min - Darkest Blue
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {timeLimit / 60}min
-            </span>
-            <span className="text-xs md:text-sm lg:text-base font-semibold">
-              Time Limit
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full max-w-3xl mx-auto mb-6 p-4 md:p-6 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-none border border-gray-100 dark:border-gray-800 transition-all duration-300">
-        {completed ? (
-          <div className="flex items-center justify-center gap-1 md:gap-2">
-            <CircleCheckBig className="text-green-600 dark:text-green-500" />
-            <span className="text-lg md:text-xl lg:text-2xl text-green-600 dark:text-green-500 font-semibold">
-              Test Completed
-            </span>
-          </div>
-        ) : (
-          <div className="grid grid-cols-4">
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {wpm}
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-yellow-500 dark:text-yellow-400 font-semibold">
-                WPM
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {accuracy}%
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-green-600 dark:text-green-500 font-semibold">
-                Accuracy
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {errors}
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-red-600 dark:text-red-500 font-semibold">
-                Errors
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2">
-              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold">
-                {timeLeft}s
-              </span>
-              <span className="text-sm md:text-base lg:text-lg text-indigo-600 dark:text-indigo-500 font-semibold">
-                Time Left
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {!completed ? (
-        <div className="w-full max-w-3xl mx-auto text-wrap overflow-hidden mb-6 p-4 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-none border border-gray-200 dark:border-gray-700 transition-all duration-300">
-          <p className="mb-4 text-wrap break-normal whitespace-normal">
-            {paragraph.map((word, wIndex) => {
-              let wordClass = "text-gray-500"; // Default color for untyped words
-
-              if (wIndex < currentWordIndex) {
-                // Correctly typed words
-                if (!mistakenWords.includes(word)) {
-                  wordClass = "text-green-500 font-bold"; // Green for correct words
-                } else {
-                  wordClass = "text-red-500 font-bold"; // Red for incorrect words
-                }
-              } else if (wIndex === currentWordIndex) {
-                wordClass = "text-primary font-bold underline"; // Blue for next word
-              }
-
-              return (
-                <span
-                  key={wIndex}
-                  className={`mr-2 text-lg font-medium ${wordClass} inline-block`}
-                >
-                  {word}
-                </span>
-              );
-            })}
-          </p>
-
-          {/* Typing Input */}
-          <input
-            type="text"
-            value={userInput}
-            onChange={handleInputChange}
-            placeholder={startTime ? "" : "Start Typing Here..."}
-            className="w-full p-4 font-semibold border-b-2 border-gray-200 hover:border-gray-400 focus:border-gray-500 dark:border-gray-700 dark:hover:border-gray-500 dark:focus:border-gray-400 outline-none rounded-lg text-lg text-center bg-white dark:bg-gray-900 whitespace-normal transition-all ease-in-out duration-300 delay-75"
-          />
-        </div>
-      ) : (
-        <div className="w-full max-w-3xl mx-auto mb-6 p-8 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-none border border-gray-200 dark:border-gray-700 transition-all duration-300">
-          <div className="flex items-center justify-between border-b pb-3 mb-4 border-gray-300 dark:border-gray-700">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-light-textPrimary dark:text-dark-textPrimary ">
-              Test Results
-            </h3>
-
-            <button
-              onClick={restartTest}
-              className=" bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center justify-center text-lg font-semibold shadow-md transition-all duration-300"
-            >
-              <RefreshCw className="mr-2 w-5 h-5" /> Restart Test
-            </button>
-          </div>
-
-          <div className="space-y-2 text-lg text-gray-700 dark:text-gray-300">
-            <p className="capitalize">
-              <strong className=" capitalize">Type:</strong> {type}
-            </p>
-            <p className="capitalize">
-              <strong className=" capitalize">Level:</strong> {level}
-            </p>
-            <p className="capitalize">
-              <strong className=" capitalize">Time:</strong> {timeLimit}sec
-            </p>
-            <p>
-              <strong className="">Your Speed:</strong>{" "}
-              <span className="text-green-600 dark:text-green-500 font-extrabold">
-                {/* {Math.round(wpm * (accuracy / 100))} WPM */}
-                {Math.round(
-                  (totalWordsTyped * accuracy) / 100 / minutesElapsed
-                )}{" "}
-                WPM
-              </span>
-            </p>
-            <p>
-              <strong className="">Speed You Typed:</strong> {wpm} WPM
-            </p>
-            <p>
-              <strong className="">Accuracy:</strong> {accuracy}%
-            </p>
-            <p>
-              <strong className="">Total Errors:</strong> {errors}
-            </p>
-
-            <div>
-              <strong>Mistaken Words:</strong>
-              {mistakenWords.length > 0 ? (
-                <ol className="mt-2 pl-10 list-decimal space-y-1 text-gray-800 dark:text-gray-300 max-h-[320px] overflow-auto">
-                  {mistakenWords.map((word, index) => (
-                    <li
-                      key={index}
-                      className="text-red-600 dark:text-red-500 font-medium"
-                    >
-                      {word}
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="mt-1 text-green-600 dark:text-green-400">None</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </section>
-  );
-};
-
-export default TypingTestPage;
-
-Final 2 Version
+Version 5
 import { ArrowLeft, CircleCheckBig, RefreshCcw, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -1958,438 +24,12 @@ const TypingTestPage: React.FC = () => {
   const [totalWordsTyped, setTotalWordsTyped] = useState(0);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
-  const [wpm, setWpm] = useState<number>(0);
-  const [accuracy, setAccuracy] = useState<number>(0);
-  const [completed, setCompleted] = useState<boolean>(false);
-  const [endTime, setEndTime] = useState<number | null>(null);
-
-  useEffect(() => {
-    fetchNewParagraph();
-  }, [type, level]);
-
-  useEffect(() => {
-    if (startTime && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
-      setCompleted(true);
-      setEndTime(Date.now());
-    }
-  }, [timeLeft, startTime]);
-
-  const fetchNewParagraph = () => {
-    const typeKey = Object.keys(typingTestConfig).find(
-      (key) => key.toLowerCase() === type.toLowerCase()
-    );
-
-    if (!typeKey) {
-      setParagraph(["Error: Invalid type."]);
-      return;
-    }
-
-    const levelKey = Object.keys(typingTestConfig[typeKey]).find(
-      (key) => key.toLowerCase() === level.toLowerCase()
-    );
-
-    if (!levelKey) {
-      setParagraph(["Error: Invalid level."]);
-      return;
-    }
-
-    const texts = typingTestConfig[typeKey][levelKey] ?? [];
-    if (texts.length > 0) {
-      const randomText = texts[Math.floor(Math.random() * texts.length)];
-      setParagraph(randomText.split(" "));
-      setCurrentWordIndex(0);
-      setUserInput("");
-    } else {
-      setParagraph(["Error: No text found for this mode."]);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (completed) return;
-    if (!startTime) setStartTime(Date.now());
-
-    const value = e.target.value;
-
-    // Prevent space before typing any character
-    if (value === " " && userInput === "") {
-      return;
-    }
-
-    setUserInput(value);
-
-    const currentWord = paragraph[currentWordIndex];
-    const cleanedCurrentWord = currentWord.replace(/[^a-zA-Z0-9]/g, ""); // Remove punctuation
-    const cleanedUserInput = value.replace(/[^a-zA-Z0-9]/g, "");
-
-    let newErrors = 0;
-
-    // Count errors
-    for (let i = 0; i < cleanedUserInput.length; i++) {
-      if (cleanedUserInput[i] !== cleanedCurrentWord[i]) newErrors++;
-    }
-
-    if (value.includes(" ")) {
-      if (cleanedUserInput.trim() === "") {
-        // Prevent advancing if input is empty
-        return;
-      }
-
-      if (cleanedUserInput !== cleanedCurrentWord) {
-        setErrors((prev) => prev + 1);
-        // Store both the original word and the mistaken input
-        setMistakenWords((prev) => [
-          ...prev,
-          { original: currentWord, mistaken: value.trim() },
-        ]);
-      }
-
-      setTotalWordsTyped((prev) => prev + 1);
-      setUserInput("");
-      setCurrentWordIndex((prev) => prev + 1);
-
-      if (currentWordIndex + 1 >= paragraph.length) {
-        fetchNewParagraph();
-      }
-    }
-
-    // Update live WPM and accuracy
-    const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
-    const totalTypedWords = totalWordsTyped + 1;
-    const accuracyCalc =
-      Math.max(0, (totalTypedWords - errors) / totalTypedWords) * 100;
-    const wpmCalc = Math.round(totalTypedWords / (minutesElapsed || 1));
-
-    setWpm(wpmCalc);
-    setAccuracy(Math.round(accuracyCalc));
-  };
-
-  const restartTest = () => {
-    setCurrentWordIndex(0);
-    setUserInput("");
-    setErrors(0);
-    setMistakenWords([]);
-    setStartTime(null);
-    setTimeLeft(timeLimit);
-    setWpm(0);
-    setAccuracy(0);
-    setCompleted(false);
-    setTotalWordsTyped(0);
-    setEndTime(null);
-    fetchNewParagraph();
-  };
-
-  const calculateFinalWpm = () => {
-    if (!startTime || !endTime) return 0;
-    const minutesElapsed = (endTime - startTime) / 60000;
-    return Math.round((totalWordsTyped - errors) / minutesElapsed);
-  };
-
-  return (
-    <section className="min-h-[calc(100vh-100px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 text-light-textPrimary dark:text-dark-textPrimary">
-      <div className="w-full max-w-3xl mx-auto  mb-4 p-4 px-0 pb-0 shadow-md bg-white dark:bg-gray-900  rounded-2xl  border border-gray-100 dark:border-gray-800 transition-all duration-300">
-        <div className="flex justify-between px-2 md:px-4">
-          <button
-            onClick={() => navigate("/")}
-            className="text-xs md:text-sm flex items-center gap-1 text-light-textSecondary dark:text-dark-textSecondary hover:text-light-textPrimary dark:hover:text-dark-textPrimary transition-all duration-200 ease-in-out"
-          >
-            <ArrowLeft size={18} /> Go Back
-          </button>
-          <h2 className="text-lg md:text-xl lg:text-2xl  font-bold text-light-textPrimary dark:text-dark-textPrimary text-center">
-            Typing Speed Test
-          </h2>
-          <button
-            onClick={restartTest}
-            className="text-xs md:text-sm flex items-center gap-1 text-light-textSecondary dark:text-dark-textSecondary hover:text-light-textPrimary dark:hover:text-dark-textPrimary transition-all duration-200 ease-in-out"
-          >
-            <RefreshCcw size={18} /> New Test
-          </button>
-        </div>
-        <div className="grid grid-cols-3 mt-6">
-          <div className="flex flex-col items-center justify-center gap-1 border-r-2 rounded-l-2xl bg-gradient-to-t  from-orange-50/70 dark:from-orange-800/10 via-transparent to-transparent border-gray-100 dark:border-gray-800 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg font-bold capitalize  ${
-                type.toLowerCase() === "text"
-                  ? "text-green-600 dark:text-green-500" // Text - Green
-                  : type.toLowerCase() === "numbers"
-                  ? "text-indigo-600 dark:text-indigo-500" // Numbers - Blue
-                  : type.toLowerCase() === "coding"
-                  ? "text-purple-600 dark:text-purple-500" // Coding - Purple
-                  : type.toLowerCase() === "symbols"
-                  ? "text-orange-600 dark:text-orange-500" // Symbols - Orange
-                  : "text-gray-500 dark:text-gray-400" // Default - Gray
-              }`}
-            >
-              {type}
-            </span>
-            <span className="text-xs md:text-sm  font-semibold">Type</span>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1 border-r-2 bg-gradient-to-t  from-purple-50 dark:from-indigo-900/10 via-transparent to-transparent border-gray-100 dark:border-gray-800 pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg  font-bold capitalize ${
-                level.toLowerCase() === "basic"
-                  ? "text-green-600 dark:text-green-500" // Basic - Green
-                  : level.toLowerCase() === "intermediate"
-                  ? "text-orange-500 dark:text-orange-500" // Intermediate - Yellow
-                  : level.toLowerCase() === "advanced"
-                  ? "text-red-600 dark:text-red-500" // Advanced - Red
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {level}
-            </span>
-            <span className="text-xs md:text-sm  font-semibold">Level</span>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1 rounded-r-2xl bg-gradient-to-t  from-yellow-50 dark:from-yellow-800/10 via-transparent to-transparent pb-2">
-            <span
-              className={`text-sm md:text-base lg:text-lg  font-bold capitalize ${
-                timeLimit === 60
-                  ? "text-blue-500 dark:text-yellow-500" // 1min - Medium Blue
-                  : timeLimit === 120
-                  ? "text-blue-600 dark:text-yellow-400" // 2min - Darker Blue
-                  : timeLimit === 180
-                  ? "text-blue-700 dark:text-yellow-300" // 3min - Darker Blue
-                  : timeLimit === 300
-                  ? "text-blue-800 dark:text-yellow-300" // 5min - Darkest Blue
-                  : "text-gray-500" // Default - Gray
-              }`}
-            >
-              {timeLimit / 60}min
-            </span>
-            <span className="text-xs md:text-sm  font-semibold">
-              Time Limit
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full max-w-3xl mx-auto mb-4 p-4 md:p-6 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
-        {completed ? (
-          <div className="flex flex-col items-center justify-center">
-            <div className="flex items-center justify-center gap-1 md:gap-2">
-              <span className="text-lg md:text-xl lg:text-2xl text-green-600 dark:text-green-500 font-semibold">
-                Test Completed
-              </span>
-              <CircleCheckBig className="text-green-600 dark:text-green-500" />
-            </div>
-            <p className="text-sm md:text-base lg:text-lg mt-2 text-light-textSecondary dark:text-dark-textSecondary font-medium leading-relaxed text-center">
-              You typed
-              <strong className="mx-1 text-base md:text-lg lg:text-xl text-light-textPrimary dark:text-dark-textPrimary font-semibold">
-                {totalWordsTyped + 1}
-              </strong>
-              words in
-              <strong className="mx-1 text-base md:text-lg lg:text-xl text-light-textPrimary dark:text-dark-textPrimary font-semibold">
-                {timeLimit} seconds
-              </strong>
-              with a speed of
-              <strong className="mx-1 text-base md:text-lg lg:text-xl text-green-600 dark:text-green-500 font-extrabold">
-                {calculateFinalWpm()} WPM
-              </strong>
-              and an accuracy of
-              <strong className="mx-1 text-base md:text-lg lg:text-xl text-blue-600 dark:text-blue-500 font-extrabold">
-                {accuracy}%
-              </strong>
-              .
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-4">
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl  font-extrabold">
-                {/* {wpm} */}
-                {Math.round(
-                  totalWordsTyped /
-                    ((Date.now() - (startTime || Date.now())) / 60000 || 1)
-                )}
-              </span>
-              <span className="text-sm md:text-base  text-yellow-500 dark:text-yellow-400 font-semibold">
-                WPM
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl  font-extrabold">
-                {accuracy}%
-              </span>
-              <span className="text-sm md:text-base  text-green-600 dark:text-green-500 font-semibold">
-                Accuracy
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
-              <span className="text-xl md:text-2xl lg:text-3xl  font-extrabold">
-                {errors}
-              </span>
-              <span className="text-sm md:text-base  text-red-600 dark:text-red-500 font-semibold">
-                Errors
-              </span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 md:gap-2">
-              <span className="text-xl md:text-2xl lg:text-3xl  font-extrabold">
-                {timeLeft}s
-              </span>
-              <span className="text-sm md:text-base  text-indigo-600 dark:text-indigo-500 font-semibold">
-                Time Left
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {!completed ? (
-        <div className="w-full max-w-3xl mx-auto text-wrap overflow-hidden p-4 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
-          <p className="mb-4 text-wrap break-normal whitespace-normal">
-            {paragraph.map((word, wIndex) => {
-              let wordClass = "text-gray-500"; // Default color for untyped words
-
-              const isMistaken = mistakenWords.some(
-                (mistake) => mistake.original === word
-              );
-
-              if (wIndex < currentWordIndex) {
-                // Correctly typed words
-                if (!isMistaken) {
-                  wordClass = "text-green-500 font-bold"; // Green for correct words
-                } else {
-                  wordClass = "text-red-500 font-bold"; // Red for incorrect words
-                }
-              } else if (wIndex === currentWordIndex) {
-                wordClass = "text-primary font-bold underline"; // Blue for next word
-              }
-
-              return (
-                <span
-                  key={wIndex}
-                  className={`mr-2 text-base font-medium ${wordClass} inline-block`}
-                >
-                  {word}
-                </span>
-              );
-            })}
-          </p>
-
-          {/* Typing Input */}
-          <input
-            type="text"
-            value={userInput}
-            onChange={handleInputChange}
-            autoFocus
-            placeholder={startTime ? "" : "Start Typing Here..."}
-            className="w-full p-4 font-semibold border-b-2 border-gray-200 hover:border-gray-400 focus:border-gray-500 dark:border-gray-700 dark:hover:border-gray-500 dark:focus:border-gray-400 outline-none rounded-lg text-lg text-center bg-white dark:bg-gray-900 whitespace-normal transition-all ease-in-out duration-300 delay-75"
-          />
-        </div>
-      ) : (
-        <div className="w-full max-w-3xl mx-auto p-8 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
-          <div className="flex items-center justify-between border-b pb-3 mb-4 border-gray-300 dark:border-gray-700">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-light-textPrimary dark:text-dark-textPrimary ">
-              Test Results
-            </h3>
-
-            <button
-              onClick={restartTest}
-              className=" bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center justify-center text-lg font-semibold shadow-md transition-all duration-300"
-            >
-              <RefreshCw className="mr-2 w-5 h-5" /> Restart Test
-            </button>
-          </div>
-
-          <div className="space-y-2 text-lg text-gray-700 dark:text-gray-300">
-            <p className="capitalize">
-              <strong className=" capitalize">Type:</strong> {type}
-            </p>
-            <p className="capitalize">
-              <strong className=" capitalize">Level:</strong> {level}
-            </p>
-            <p className="capitalize">
-              <strong className=" capitalize">Time:</strong> {timeLimit}sec
-            </p>
-            <p className="capitalize">
-              <strong className=" capitalize">Total Typed Words:</strong>{" "}
-              {totalWordsTyped}
-            </p>
-            <p>
-              <strong className="">Total Errors:</strong> {errors}
-            </p>
-            <p>
-              <strong className="">Accuracy:</strong> {accuracy}%
-            </p>
-            <p>
-              <strong className="">Your Speed:</strong>{" "}
-              <span className="text-green-600 dark:text-green-500 font-extrabold">
-                {calculateFinalWpm()} WPM
-              </span>
-            </p>
-
-            {mistakenWords.length > 0 && (
-              <div>
-                <strong>Mistaken Words:</strong>
-                {mistakenWords.length > 0 ? (
-                  <ol className="mt-2 pl-10 list-decimal space-y-1 text-gray-800 dark:text-gray-300 max-h-[320px] overflow-auto">
-                    {mistakenWords.map((wordPair, index) => (
-                      <li
-                        key={index}
-                        className="flex items-center gap-3 font-medium"
-                      >
-                        <span className="text-gray-700 dark:text-gray-400">
-                          {index + 1}.
-                        </span>
-                        <span className="text-green-600 dark:text-green-400">
-                          {wordPair.original}
-                        </span>
-                        <span className="text-gray-500">→</span>
-                        <span className="text-red-600 dark:text-red-500">
-                          {wordPair.mistaken}
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-                ) : (
-                  <p className="mt-1 text-green-600 dark:text-green-400">
-                    None
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </section>
-  );
-};
-
-export default TypingTestPage;
-
-
-Final 2
-import { ArrowLeft, CircleCheckBig, RefreshCcw, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { typingTestConfig } from "../../config/typingConfig";
-
-const TypingTestPage: React.FC = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const params = new URLSearchParams(location.search);
-  const type = params.get("type") || "Text";
-  const level = params.get("level") || "Basic";
-  const timeLimit =
-    parseInt(params.get("time")?.replace("min", "") || "1") * 60;
-
-  const [paragraph, setParagraph] = useState<string[]>([]);
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [userInput, setUserInput] = useState<string>("");
-  const [errors, setErrors] = useState(0);
-  const [mistakenWords, setMistakenWords] = useState<
-    { original: string; mistaken: string }[]
-  >([]);
-  const [totalWordsTyped, setTotalWordsTyped] = useState(0);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
-  const [wpm, setWpm] = useState<number>(0);
+  // const [wpm, setWpm] = useState<number>(0);
   const [accuracy, setAccuracy] = useState<number>(0);
   const [completed, setCompleted] = useState<boolean>(false);
   const [endTime, setEndTime] = useState<number | null>(null);
   const [cursorPosition, setCursorPosition] = useState<number>(0);
+  const [characterErrors, setCharacterErrors] = useState<boolean[][]>([]);
 
   useEffect(() => {
     fetchNewParagraph();
@@ -2430,6 +70,7 @@ const TypingTestPage: React.FC = () => {
       setParagraph(randomText.split(" "));
       setCurrentWordIndex(0);
       setUserInput("");
+      setCharacterErrors(new Array(randomText.split(" ").length).fill([]));
     } else {
       setParagraph(["Error: No text found for this mode."]);
     }
@@ -2450,6 +91,16 @@ const TypingTestPage: React.FC = () => {
     setUserInput(value);
 
     const currentWord = paragraph[currentWordIndex];
+
+    // Check each character for correctness
+    const newCharacterErrors = value
+      .split("")
+      .map((char, index) => char !== currentWord[index]);
+    setCharacterErrors((prev) => {
+      const newErrors = [...prev];
+      newErrors[currentWordIndex] = newCharacterErrors;
+      return newErrors;
+    });
 
     // Check if the entire word matches exactly
     if (value.endsWith(" ")) {
@@ -2475,15 +126,15 @@ const TypingTestPage: React.FC = () => {
     }
 
     // Update live WPM and accuracy
-    const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
+    // const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
     const totalTypedWords = totalWordsTyped + 1;
     const accuracyCalc =
       Math.max(0, (totalTypedWords - errors) / totalTypedWords) * 100;
-    const wpmCalc = Math.round(
-      (totalTypedWords - errors) / (minutesElapsed || 1)
-    );
+    // const wpmCalc = Math.round(
+    //   (totalTypedWords - errors) / (minutesElapsed || 1)
+    // );
 
-    setWpm(wpmCalc);
+    // setWpm(wpmCalc);
     setAccuracy(Math.round(accuracyCalc));
   };
 
@@ -2494,11 +145,12 @@ const TypingTestPage: React.FC = () => {
     setMistakenWords([]);
     setStartTime(null);
     setTimeLeft(timeLimit);
-    setWpm(0);
+    // setWpm(0);
     setAccuracy(0);
     setCompleted(false);
     setTotalWordsTyped(0);
     setEndTime(null);
+    setCharacterErrors([]);
     fetchNewParagraph();
   };
 
@@ -2619,12 +271,6 @@ const TypingTestPage: React.FC = () => {
           <div className="grid grid-cols-4">
             <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
               <span className="text-xl md:text-2xl lg:text-3xl  font-extrabold">
-                {/* {wpm} */}
-                {/* {Math.round(
-                  (totalWordsTyped - errors) /
-                    ((Date.now() - (startTime || Date.now())) / 60000 || 1)
-                )} */}
-
                 {Math.max(
                   Math.round(
                     (totalWordsTyped - errors) /
@@ -2678,12 +324,12 @@ const TypingTestPage: React.FC = () => {
               if (wIndex < currentWordIndex) {
                 // Correctly typed words
                 if (!isMistaken) {
-                  wordClass = "text-green-500"; // Green for correct words
+                  wordClass = "text-green-500 dark:text-green-400"; // Green for correct words
                 } else {
-                  wordClass = "text-red-500"; // Red for incorrect words
+                  wordClass = "text-red-500 dark:text-red-400"; // Red for incorrect words
                 }
               } else if (wIndex === currentWordIndex) {
-                wordClass = "text-gray-950 dark:text-gray-50"; // Blue for next word
+                wordClass = "text-gray-950 dark:text-gray-50";
               }
 
               return (
@@ -2696,8 +342,13 @@ const TypingTestPage: React.FC = () => {
                       {word.split("").map((char, index) => (
                         <span className="relative">
                           <span
-                            key={index}
-                            className={`text-lg lg:text-xl  ${wordClass} inline-block`}
+                            className={`text-lg lg:text-xl ${
+                              characterErrors[currentWordIndex]?.[index]
+                                ? "text-red-500 underline"
+                                : index < cursorPosition
+                                ? "text-green-500 dark:text-green-400"
+                                : "text-gray-950 dark:text-gray-50"
+                            } inline-block`}
                           >
                             {char}
                           </span>
@@ -2737,7 +388,7 @@ const TypingTestPage: React.FC = () => {
             </h3>
 
             <button
-              onClick={restartTest}
+              onClick={() => window.location.reload()}
               className=" bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center justify-center text-lg font-semibold shadow-md transition-all duration-300"
             >
               <RefreshCw className="mr-2 w-5 h-5" /> Restart Test
@@ -2809,5 +460,752 @@ const TypingTestPage: React.FC = () => {
 };
 
 export default TypingTestPage;
+
+
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+FINAL WITH WORDS Version
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+
+import { ArrowLeft, CircleCheckBig, RefreshCcw, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { typingTestConfig } from "../../config/typingConfig";
+
+const TypingTestPage: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const params = new URLSearchParams(location.search);
+  const type = params.get("type") || "Text";
+  const level = params.get("level") || "Basic";
+  const timeLimit =
+    parseInt(params.get("time")?.replace("min", "") || "1") * 60;
+
+  const [paragraph, setParagraph] = useState<string[]>([]);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [userInput, setUserInput] = useState<string>("");
+  const [errors, setErrors] = useState(0);
+  const [mistakenWords, setMistakenWords] = useState<
+    { index: number; mistaken: string }[]
+  >([]);
+  const [totalWordsTyped, setTotalWordsTyped] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
+  // const [wpm, setWpm] = useState<number>(0);
+  const [accuracy, setAccuracy] = useState<number>(0);
+  const [completed, setCompleted] = useState<boolean>(false);
+  const [endTime, setEndTime] = useState<number | null>(null);
+  const [cursorPosition, setCursorPosition] = useState<number>(0);
+  const [characterErrors, setCharacterErrors] = useState<boolean[][]>([]);
+
+  useEffect(() => {
+    fetchNewParagraph();
+  }, [type, level]);
+
+  useEffect(() => {
+    if (startTime && timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0) {
+      setCompleted(true);
+      setEndTime(Date.now());
+    }
+  }, [timeLeft, startTime]);
+
+  const fetchNewParagraph = () => {
+    const typeKey = Object.keys(typingTestConfig).find(
+      (key) => key.toLowerCase() === type.toLowerCase()
+    );
+
+    if (!typeKey) {
+      setParagraph(["Error: Invalid type."]);
+      return;
+    }
+
+    const levelKey = Object.keys(typingTestConfig[typeKey]).find(
+      (key) => key.toLowerCase() === level.toLowerCase()
+    );
+
+    if (!levelKey) {
+      setParagraph(["Error: Invalid level."]);
+      return;
+    }
+
+    const texts = typingTestConfig[typeKey][levelKey] ?? [];
+    if (texts.length > 0) {
+      const randomText = texts[Math.floor(Math.random() * texts.length)];
+      setParagraph(randomText.split(" "));
+      setCurrentWordIndex(0);
+      setUserInput("");
+      setCharacterErrors(new Array(randomText.split(" ").length).fill([]));
+    } else {
+      setParagraph(["Error: No text found for this mode."]);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (completed) return;
+    if (!startTime) setStartTime(Date.now());
+
+    const value = e.target.value;
+    setCursorPosition(value.length);
+
+    // Prevent space before typing any character
+    if (value === " " && userInput === "") {
+      return;
+    }
+
+    setUserInput(value);
+
+    const currentWord = paragraph[currentWordIndex];
+
+    // Check each character for correctness
+    const newCharacterErrors = value
+      .split("")
+      .map((char, index) => char !== currentWord[index]);
+    setCharacterErrors((prev) => {
+      const newErrors = [...prev];
+      newErrors[currentWordIndex] = newCharacterErrors;
+      return newErrors;
+    });
+
+    // Check if the entire word matches exactly
+    if (value.endsWith(" ")) {
+      if (value.trim() === currentWord) {
+        // Correct word
+        setTotalWordsTyped((prev) => prev + 1);
+      } else {
+        // Incorrect word
+        setErrors((prev) => prev + 1);
+        setMistakenWords((prev) => [
+          ...prev,
+          { index: currentWordIndex, mistaken: value.trim() },
+        ]);
+      }
+
+      setUserInput("");
+      setCurrentWordIndex((prev) => prev + 1);
+      setCursorPosition(0);
+
+      if (currentWordIndex + 1 >= paragraph.length) {
+        fetchNewParagraph();
+      }
+    }
+
+    // Update live WPM and accuracy
+    // const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
+    const totalTypedWords = totalWordsTyped + 1;
+    const accuracyCalc =
+      Math.max(0, (totalTypedWords - errors) / totalTypedWords) * 100;
+    // const wpmCalc = Math.round(
+    //   (totalTypedWords - errors) / (minutesElapsed || 1)
+    // );
+
+    // setWpm(wpmCalc);
+    setAccuracy(Math.round(accuracyCalc));
+  };
+
+  const restartTest = () => {
+    setCurrentWordIndex(0);
+    setUserInput("");
+    setErrors(0);
+    setMistakenWords([]);
+    setStartTime(null);
+    setTimeLeft(timeLimit);
+    // setWpm(0);
+    setAccuracy(0);
+    setCompleted(false);
+    setTotalWordsTyped(0);
+    setEndTime(null);
+    setCharacterErrors([]);
+    fetchNewParagraph();
+  };
+
+  const calculateFinalWpm = () => {
+    if (!startTime || !endTime) return 0;
+    const minutesElapsed = (endTime - startTime) / 60000 || 1; // Prevent division by zero
+    return Math.max(Math.round((totalWordsTyped - errors) / minutesElapsed), 0);
+  };
+
+  return (
+    <section className="min-h-[calc(100vh-100px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 text-light-textPrimary dark:text-dark-textPrimary">
+      <div className="w-full max-w-3xl mx-auto  mb-4 p-4 px-0 pb-0 shadow-md bg-white dark:bg-gray-900  rounded-2xl  border border-gray-100 dark:border-gray-800 transition-all duration-300">
+        <div className="flex justify-between px-2 md:px-4">
+          <button
+            onClick={() => navigate("/")}
+            className="text-xs md:text-sm flex items-center gap-1 text-light-textSecondary dark:text-dark-textSecondary hover:text-light-textPrimary dark:hover:text-dark-textPrimary transition-all duration-200 ease-in-out"
+          >
+            <ArrowLeft size={18} /> Go Back
+          </button>
+          <h2 className="text-lg md:text-xl lg:text-2xl  font-bold text-light-textPrimary dark:text-dark-textPrimary text-center">
+            Typing Speed Test
+          </h2>
+          <button
+            onClick={restartTest}
+            className="text-xs md:text-sm flex items-center gap-1 text-light-textSecondary dark:text-dark-textSecondary hover:text-light-textPrimary dark:hover:text-dark-textPrimary transition-all duration-200 ease-in-out"
+          >
+            <RefreshCcw size={18} /> New Test
+          </button>
+        </div>
+        <div className="grid grid-cols-3 mt-6">
+          <div className="flex flex-col items-center justify-center gap-1 border-r-2 rounded-l-2xl bg-gradient-to-t  from-orange-50/70 dark:from-orange-800/10 via-transparent to-transparent border-gray-100 dark:border-gray-800 pb-2">
+            <span
+              className={`text-sm md:text-base lg:text-lg font-bold capitalize  ${
+                type.toLowerCase() === "text"
+                  ? "text-green-600 dark:text-green-500" // Text - Green
+                  : type.toLowerCase() === "numbers"
+                  ? "text-indigo-600 dark:text-indigo-500" // Numbers - Blue
+                  : type.toLowerCase() === "coding"
+                  ? "text-purple-600 dark:text-purple-500" // Coding - Purple
+                  : type.toLowerCase() === "symbols"
+                  ? "text-orange-600 dark:text-orange-500" // Symbols - Orange
+                  : "text-gray-500 dark:text-gray-400" // Default - Gray
+              }`}
+            >
+              {type}
+            </span>
+            <span className="text-xs md:text-sm  font-semibold">Type</span>
+          </div>
+          <div className="flex flex-col items-center justify-center gap-1 border-r-2 bg-gradient-to-t  from-purple-50 dark:from-indigo-900/10 via-transparent to-transparent border-gray-100 dark:border-gray-800 pb-2">
+            <span
+              className={`text-sm md:text-base lg:text-lg  font-bold capitalize ${
+                level.toLowerCase() === "basic"
+                  ? "text-green-600 dark:text-green-500" // Basic - Green
+                  : level.toLowerCase() === "intermediate"
+                  ? "text-orange-500 dark:text-orange-500" // Intermediate - Yellow
+                  : level.toLowerCase() === "advanced"
+                  ? "text-red-600 dark:text-red-500" // Advanced - Red
+                  : "text-gray-500" // Default - Gray
+              }`}
+            >
+              {level}
+            </span>
+            <span className="text-xs md:text-sm  font-semibold">Level</span>
+          </div>
+          <div className="flex flex-col items-center justify-center gap-1 rounded-r-2xl bg-gradient-to-t  from-yellow-50 dark:from-yellow-800/10 via-transparent to-transparent pb-2">
+            <span
+              className={`text-sm md:text-base lg:text-lg  font-bold capitalize ${
+                timeLimit === 60
+                  ? "text-blue-500 dark:text-yellow-500" // 1min - Medium Blue
+                  : timeLimit === 120
+                  ? "text-blue-600 dark:text-yellow-400" // 2min - Darker Blue
+                  : timeLimit === 180
+                  ? "text-blue-700 dark:text-yellow-300" // 3min - Darker Blue
+                  : timeLimit === 300
+                  ? "text-blue-800 dark:text-yellow-300" // 5min - Darkest Blue
+                  : "text-gray-500" // Default - Gray
+              }`}
+            >
+              {timeLimit / 60}min
+            </span>
+            <span className="text-xs md:text-sm  font-semibold">
+              Time Limit
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full max-w-3xl mx-auto mb-4 p-4 md:p-6 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
+        {completed ? (
+          <div className="flex flex-col items-center justify-center">
+            <div className="flex items-center justify-center gap-1 md:gap-2">
+              <span className="text-lg md:text-xl lg:text-2xl text-green-600 dark:text-green-500 font-semibold">
+                Test Completed
+              </span>
+              <CircleCheckBig className="text-green-600 dark:text-green-500" />
+            </div>
+            <p className="text-sm md:text-base lg:text-lg mt-2 text-light-textSecondary dark:text-dark-textSecondary font-medium leading-relaxed text-center">
+              You typed
+              <strong className="mx-1 text-base md:text-lg lg:text-xl text-light-textPrimary dark:text-dark-textPrimary font-semibold">
+                {totalWordsTyped}
+              </strong>
+              words in
+              <strong className="mx-1 text-base md:text-lg lg:text-xl text-light-textPrimary dark:text-dark-textPrimary font-semibold">
+                {timeLimit} seconds
+              </strong>
+              with a speed of
+              <strong className="mx-1 text-base md:text-lg lg:text-xl text-green-600 dark:text-green-500 font-extrabold">
+                {calculateFinalWpm()} WPM
+              </strong>
+              and an accuracy of
+              <strong className="mx-1 text-base md:text-lg lg:text-xl text-blue-600 dark:text-blue-500 font-extrabold">
+                {accuracy}%
+              </strong>
+              .
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-4">
+            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
+              <span className="text-xl md:text-2xl lg:text-3xl  font-extrabold">
+                {Math.max(
+                  Math.round(
+                    (totalWordsTyped - errors) /
+                      ((Date.now() - (startTime || Date.now())) / 60000 || 1)
+                  ),
+                  0
+                )}
+              </span>
+              <span className="text-sm md:text-base  text-yellow-500 dark:text-yellow-400 font-semibold">
+                WPM
+              </span>
+            </div>
+            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
+              <span className="text-xl md:text-2xl lg:text-3xl  font-extrabold">
+                {accuracy}%
+              </span>
+              <span className="text-sm md:text-base  text-green-600 dark:text-green-500 font-semibold">
+                Accuracy
+              </span>
+            </div>
+            <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
+              <span className="text-xl md:text-2xl lg:text-3xl  font-extrabold">
+                {errors}
+              </span>
+              <span className="text-sm md:text-base  text-red-600 dark:text-red-500 font-semibold">
+                Errors
+              </span>
+            </div>
+            <div className="flex flex-col items-center justify-center gap-1 md:gap-2">
+              <span className="text-xl md:text-2xl lg:text-3xl  font-extrabold">
+                {timeLeft}s
+              </span>
+              <span className="text-sm md:text-base  text-indigo-600 dark:text-indigo-500 font-semibold">
+                Time Left
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {!completed ? (
+        <div className="w-full max-w-3xl mx-auto text-wrap overflow-hidden p-4 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
+          <p className="mb-4 text-wrap break-normal whitespace-normal">
+            {paragraph.map((word, wIndex) => {
+              let wordClass = "text-gray-600 dark:text-gray-400";
+
+              const isMistaken = mistakenWords.some(
+                (mistake) => mistake.index === wIndex
+              );
+
+              if (wIndex < currentWordIndex) {
+                // Correctly typed words
+                if (!isMistaken) {
+                  wordClass = "text-green-500 dark:text-green-400"; // Green for correct words
+                } else {
+                  wordClass = "text-red-500 dark:text-red-400"; // Red for incorrect words
+                }
+              } else if (wIndex === currentWordIndex) {
+                wordClass = "text-gray-950 dark:text-gray-50";
+              }
+
+              return (
+                <span
+                  key={wIndex}
+                  className={`mr-2 text-lg lg:text-xl ${wordClass} inline-block tracking-wider  `}
+                >
+                  {wIndex === currentWordIndex ? (
+                    <>
+                      {word.split("").map((char, index) => (
+                        <span className="relative">
+                          <span
+                            className={`text-lg lg:text-xl ${
+                              characterErrors[currentWordIndex]?.[index]
+                                ? "text-red-500 underline"
+                                : index < cursorPosition
+                                ? "text-green-500 dark:text-green-400"
+                                : "text-gray-950 dark:text-gray-50"
+                            } inline-block`}
+                          >
+                            {char}
+                          </span>
+                          <span
+                            className={
+                              index === cursorPosition
+                                ? "cursor absolute -left-1 bg-black dark:bg-white"
+                                : ""
+                            }
+                          ></span>
+                        </span>
+                      ))}
+                    </>
+                  ) : (
+                    word
+                  )}
+                </span>
+              );
+            })}
+          </p>
+
+          {/* Typing Input */}
+          <input
+            type="text"
+            value={userInput}
+            onChange={handleInputChange}
+            autoFocus
+            placeholder={startTime ? "" : "Start Typing Here..."}
+            className="w-full p-4 font-semibold text-lg tracking-wide md:text-xl border-b-2 border-gray-200 hover:border-gray-400 focus:border-gray-500 dark:border-gray-700 dark:hover:border-gray-500 dark:focus:border-gray-400 outline-none rounded-lg   bg-white dark:bg-gray-900 whitespace-normal transition-all ease-in-out duration-300 delay-75"
+          />
+        </div>
+      ) : (
+        <div className="w-full max-w-3xl mx-auto p-8 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
+          <div className="flex items-center justify-between border-b pb-3 mb-4 border-gray-300 dark:border-gray-700">
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-light-textPrimary dark:text-dark-textPrimary ">
+              Test Results
+            </h3>
+
+            <button
+              onClick={() => window.location.reload()}
+              className=" bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center justify-center text-lg font-semibold shadow-md transition-all duration-300"
+            >
+              <RefreshCw className="mr-2 w-5 h-5" /> Restart Test
+            </button>
+          </div>
+
+          <div className="space-y-2 text-lg text-gray-700 dark:text-gray-300">
+            <p className="capitalize">
+              <strong className=" capitalize">Type:</strong> {type}
+            </p>
+            <p className="capitalize">
+              <strong className=" capitalize">Level:</strong> {level}
+            </p>
+            <p className="capitalize">
+              <strong className=" capitalize">Time:</strong> {timeLimit}sec
+            </p>
+            <p className="capitalize">
+              <strong className=" capitalize">Total Typed Words:</strong>{" "}
+              {totalWordsTyped}
+            </p>
+            <p>
+              <strong className="">Total Errors:</strong> {errors}
+            </p>
+            <p>
+              <strong className="">Accuracy:</strong> {accuracy}%
+            </p>
+            <p>
+              <strong className="">Your Speed:</strong>{" "}
+              <span className="text-green-600 dark:text-green-500 font-extrabold">
+                {calculateFinalWpm()} WPM
+              </span>
+            </p>
+
+            {mistakenWords.length > 0 && (
+              <div>
+                <strong>Mistaken Words:</strong>
+                {mistakenWords.length > 0 ? (
+                  <ol className="mt-2 pl-10 list-decimal space-y-1 text-gray-800 dark:text-gray-300 max-h-[320px] overflow-auto">
+                    {mistakenWords.map((wordPair, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center gap-3 font-medium"
+                      >
+                        <span className="text-gray-700 dark:text-gray-400">
+                          {index + 1}.
+                        </span>
+                        <span className="text-green-600 dark:text-green-400">
+                          {paragraph[wordPair.index]}
+                        </span>
+                        <span className="text-gray-500">→</span>
+                        <span className="text-red-600 dark:text-red-500">
+                          {wordPair.mistaken}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="mt-1 text-green-600 dark:text-green-400">
+                    None
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+};
+
+export default TypingTestPage;
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import TypingCheckBox from "../../components/typing-test/TypingCheckBox";
+import TypingTestPageHeader from "../../components/typing-test/TypingTestPageHeader";
+import TypingTestResults from "../../components/typing-test/TypingTestResults";
+import { typingTestConfig } from "../../config/typingConfig";
+
+const TypingTestPage: React.FC = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const type = params.get("type") || "Text";
+  const level = params.get("level") || "Basic";
+  const timeLimit =
+    parseInt(params.get("time")?.replace("min", "") || "1") * 60;
+
+  const [paragraph, setParagraph] = useState<string[]>([]);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [userInput, setUserInput] = useState<string>("");
+  const [errors, setErrors] = useState(0);
+  const [mistakenWords, setMistakenWords] = useState<
+    { index: number; mistaken: string }[]
+  >([]);
+  const [totalWordsTyped, setTotalWordsTyped] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
+  // const [wpm, setWpm] = useState<number>(0);
+  const [accuracy, setAccuracy] = useState<number>(0);
+  const [completed, setCompleted] = useState<boolean>(false);
+  const [endTime, setEndTime] = useState<number | null>(null);
+  const [cursorPosition, setCursorPosition] = useState<number>(0);
+  const [characterErrors, setCharacterErrors] = useState<boolean[][]>([]);
+
+  useEffect(() => {
+    fetchNewParagraph();
+  }, [type, level]);
+
+  useEffect(() => {
+    if (startTime && timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0) {
+      setCompleted(true);
+      setEndTime(Date.now());
+    }
+  }, [timeLeft, startTime]);
+
+  const fetchNewParagraph = () => {
+    const typeKey = Object.keys(typingTestConfig).find(
+      (key) => key.toLowerCase() === type.toLowerCase()
+    );
+
+    if (!typeKey) {
+      setParagraph(["Error: Invalid type."]);
+      return;
+    }
+
+    const levelKey = Object.keys(typingTestConfig[typeKey]).find(
+      (key) => key.toLowerCase() === level.toLowerCase()
+    );
+
+    if (!levelKey) {
+      setParagraph(["Error: Invalid level."]);
+      return;
+    }
+
+    const texts = typingTestConfig[typeKey][levelKey] ?? [];
+    if (texts.length > 0) {
+      const randomText = texts[Math.floor(Math.random() * texts.length)];
+      setParagraph(randomText.split(" "));
+      setCurrentWordIndex(0);
+      setUserInput("");
+      setCharacterErrors(new Array(randomText.split(" ").length).fill([]));
+    } else {
+      setParagraph(["Error: No text found for this mode."]);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (completed) return;
+    if (!startTime) setStartTime(Date.now());
+
+    const value = e.target.value;
+    setCursorPosition(value.length);
+
+    // Prevent space before typing any character
+    if (value === " " && userInput === "") {
+      return;
+    }
+
+    setUserInput(value);
+
+    const currentWord = paragraph[currentWordIndex];
+
+    // Check each character for correctness
+    const newCharacterErrors = value
+      .split("")
+      .map((char, index) => char !== currentWord[index]);
+    setCharacterErrors((prev) => {
+      const newErrors = [...prev];
+      newErrors[currentWordIndex] = newCharacterErrors;
+      return newErrors;
+    });
+
+    // Check if the entire word matches exactly
+    if (value.endsWith(" ")) {
+      if (value.trim() === currentWord) {
+        // Correct word
+        setTotalWordsTyped((prev) => prev + 1);
+      } else {
+        // Incorrect word
+        setErrors((prev) => prev + 1);
+        setMistakenWords((prev) => [
+          ...prev,
+          { index: currentWordIndex, mistaken: value.trim() },
+        ]);
+      }
+
+      setUserInput("");
+      setCurrentWordIndex((prev) => prev + 1);
+      setCursorPosition(0);
+
+      if (currentWordIndex + 1 >= paragraph.length) {
+        fetchNewParagraph();
+      }
+    }
+
+    // Update live WPM and accuracy
+    // const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
+    const totalTypedWords = totalWordsTyped + 1;
+    const accuracyCalc =
+      Math.max(0, (totalTypedWords - errors) / totalTypedWords) * 100;
+    // const wpmCalc = Math.round(
+    //   (totalTypedWords - errors) / (minutesElapsed || 1)
+    // );
+
+    // setWpm(wpmCalc);
+    setAccuracy(Math.round(accuracyCalc));
+  };
+
+  const restartTest = () => {
+    setCurrentWordIndex(0);
+    setUserInput("");
+    setErrors(0);
+    setMistakenWords([]);
+    setStartTime(null);
+    setTimeLeft(timeLimit);
+    // setWpm(0);
+    setAccuracy(0);
+    setCompleted(false);
+    setTotalWordsTyped(0);
+    setEndTime(null);
+    setCharacterErrors([]);
+    fetchNewParagraph();
+  };
+
+  const calculateFinalWpm = () => {
+    if (!startTime || !endTime) return 0;
+    const minutesElapsed = (endTime - startTime) / 60000 || 1; // Prevent division by zero
+    return Math.max(Math.round((totalWordsTyped - errors) / minutesElapsed), 0);
+  };
+
+  return (
+    <section className="min-h-[calc(100vh-100px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 text-light-textPrimary dark:text-dark-textPrimary">
+      <TypingTestPageHeader
+        type={type}
+        level={level}
+        timeLimit={timeLimit}
+        onNewTestClick={restartTest}
+      />
+
+      <TypingCheckBox
+        completed={completed}
+        totalCharsTyped={totalWordsTyped}
+        timeLimit={timeLimit}
+        accuracy={accuracy}
+        errors={errors}
+        startTime={startTime}
+        timeLeft={timeLeft}
+        calculateFinalWpm={calculateFinalWpm}
+      />
+
+      {!completed ? (
+        <div className="w-full max-w-3xl mx-auto text-wrap overflow-hidden p-4 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
+          <p className="mb-4 text-wrap break-normal whitespace-normal">
+            {paragraph.map((word, wIndex) => {
+              let wordClass = "text-gray-600 dark:text-gray-400";
+
+              const isMistaken = mistakenWords.some(
+                (mistake) => mistake.index === wIndex
+              );
+
+              if (wIndex < currentWordIndex) {
+                // Correctly typed words
+                if (!isMistaken) {
+                  wordClass = "text-green-500 dark:text-green-400"; // Green for correct words
+                } else {
+                  wordClass = "text-red-500 dark:text-red-400"; // Red for incorrect words
+                }
+              } else if (wIndex === currentWordIndex) {
+                wordClass = "text-gray-950 dark:text-gray-50";
+              }
+
+              return (
+                <span
+                  key={wIndex}
+                  className={`mr-2 text-lg lg:text-xl ${wordClass} inline-block tracking-wider  `}
+                >
+                  {wIndex === currentWordIndex ? (
+                    <>
+                      {word.split("").map((char, index) => (
+                        <span className="relative">
+                          <span
+                            className={`text-lg lg:text-xl ${
+                              characterErrors[currentWordIndex]?.[index]
+                                ? "text-red-500 underline"
+                                : index < cursorPosition
+                                ? "text-green-500 dark:text-green-400"
+                                : "text-gray-950 dark:text-gray-50"
+                            } inline-block`}
+                          >
+                            {char}
+                          </span>
+                          <span
+                            className={
+                              index === cursorPosition
+                                ? "cursor absolute -left-1 bg-black dark:bg-white"
+                                : ""
+                            }
+                          ></span>
+                        </span>
+                      ))}
+                    </>
+                  ) : (
+                    word
+                  )}
+                </span>
+              );
+            })}
+          </p>
+
+          {/* Typing Input */}
+          <input
+            type="text"
+            value={userInput}
+            onChange={handleInputChange}
+            autoFocus
+            placeholder={startTime ? "" : "Start Typing Here..."}
+            className="w-full p-4 font-semibold text-lg tracking-wide md:text-xl border-b-2 border-gray-200 hover:border-gray-400 focus:border-gray-500 dark:border-gray-700 dark:hover:border-gray-500 dark:focus:border-gray-400 outline-none rounded-lg   bg-white dark:bg-gray-900 whitespace-normal transition-all ease-in-out duration-300 delay-75"
+          />
+        </div>
+      ) : (
+        <>
+          <TypingTestResults
+            type={type}
+            level={level}
+            timeLimit={timeLimit}
+            errors={errors}
+            accuracy={accuracy}
+            totalWordsTyped={totalWordsTyped}
+            mistakenWords={mistakenWords}
+            calculateFinalWpm={calculateFinalWpm}
+            paragraph={paragraph}
+          />
+        </>
+      )}
+    </section>
+  );
+};
+
+export default TypingTestPage;
+
+
+
 
 
