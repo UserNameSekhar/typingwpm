@@ -7,7 +7,7 @@ import Dropdown from "../common/drop-down/DropDown";
 export default function TypingTestSection() {
   const navigate = useNavigate();
   const [time, setTime] = useState("1min");
-  const [level, setLevel] = useState("Intermediate");
+  const [level, setLevel] = useState("Basic");
   const [type, setType] = useState("Text");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 

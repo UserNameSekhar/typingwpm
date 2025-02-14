@@ -37,8 +37,9 @@ const TypingCheckBox: React.FC<TCBProps> = ({
             <p className="text-sm md:text-base lg:text-lg mt-2 text-light-textSecondary dark:text-dark-textSecondary font-medium leading-relaxed text-center">
               You typed
               <strong className="mx-1 text-base md:text-lg lg:text-xl text-light-textPrimary dark:text-dark-textPrimary font-semibold">
-                {Math.round(totalCharsTyped-1)}
-              </strong> characters &
+                {Math.round(totalCharsTyped - 1)}
+              </strong>{" "}
+              characters &
               <strong className="mx-1 text-base md:text-lg lg:text-xl text-light-textPrimary dark:text-dark-textPrimary font-semibold">
                 {Math.round(totalCharsTyped / 5)}
               </strong>
@@ -52,7 +53,7 @@ const TypingCheckBox: React.FC<TCBProps> = ({
               </strong>
               and an accuracy of
               <strong className="mx-1 text-base md:text-lg lg:text-xl text-blue-600 dark:text-blue-500 font-extrabold">
-                {accuracy}%
+                {accuracy.toFixed(2)}%
               </strong>
               .
             </p>
@@ -69,7 +70,7 @@ const TypingCheckBox: React.FC<TCBProps> = ({
                   0
                 )}
               </span>
-              <span className="text-sm md:text-base  text-yellow-500 dark:text-yellow-400 font-semibold">
+              <span className="text-sm md:text-base  text-lime-600 dark:text-lime-500 font-semibold">
                 CPM
               </span>
             </div>
@@ -83,13 +84,13 @@ const TypingCheckBox: React.FC<TCBProps> = ({
                   0
                 )}
               </span>
-              <span className="text-sm md:text-base  text-yellow-500 dark:text-yellow-400 font-semibold">
+              <span className="text-sm md:text-base  text-amber-500 dark:text-amber-400 font-semibold">
                 WPM
               </span>
             </div>
             <div className="flex flex-col items-center justify-center gap-1 md:gap-2 border-r-2 border-gray-200 dark:border-gray-700">
               <span className="text-xl md:text-2xl lg:text-3xl  font-extrabold">
-                {accuracy.toFixed(2)}%
+              {accuracy.toFixed(0)}%
               </span>
               <span className="text-sm md:text-base  text-green-600 dark:text-green-500 font-semibold">
                 Accuracy
@@ -107,7 +108,7 @@ const TypingCheckBox: React.FC<TCBProps> = ({
               <span className="text-xl md:text-2xl lg:text-3xl  font-extrabold">
                 {timeLeft}s
               </span>
-              <span className="text-sm md:text-base  text-indigo-600 dark:text-indigo-500 font-semibold">
+              <span className="text-sm md:text-base  text-cyan-600 dark:text-cyan-500 font-semibold">
                 Time Left
               </span>
             </div>

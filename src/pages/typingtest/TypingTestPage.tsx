@@ -127,7 +127,7 @@ const TypingTestPage: React.FC = () => {
     const totalTypedChars = totalCharsTyped + value.length;
     const accuracyCalc =
       Math.max(0, (totalTypedChars - errors) / totalTypedChars) * 100;
-    setAccuracy(Math.round(accuracyCalc));
+    setAccuracy(accuracyCalc);
   };
 
   const restartTest = () => {
@@ -260,6 +260,7 @@ const TypingTestPage: React.FC = () => {
             calculateFinalWpm={calculateFinalWpm}
             calculateFinalCpm={calculateFinalCpm}
             paragraph={paragraph}
+            restartTest={restartTest}
           />
         </>
       )}

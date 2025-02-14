@@ -16,7 +16,8 @@ interface TTRProps {
   calculateFinalWpm: () => number;
   mistakenWords: MistakenWords[];
   paragraph: string[];
-  calculateFinalCpm: () => number
+  calculateFinalCpm: () => number;
+  restartTest: () => void;
 }
 
 const TypingTestResults: React.FC<TTRProps> = ({
@@ -29,7 +30,8 @@ const TypingTestResults: React.FC<TTRProps> = ({
   calculateFinalWpm,
   mistakenWords,
   paragraph,
-  calculateFinalCpm
+  calculateFinalCpm,
+  restartTest,
 }) => {
   return (
     <>
@@ -40,7 +42,7 @@ const TypingTestResults: React.FC<TTRProps> = ({
           </h3>
 
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => restartTest()}
             className=" bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center justify-center text-lg font-semibold shadow-md transition-all duration-300"
           >
             <RefreshCw className="mr-2 w-5 h-5" /> Restart Test
@@ -69,16 +71,11 @@ const TypingTestResults: React.FC<TTRProps> = ({
           </p>
           <p>
             <strong className="">Your Speed:</strong>{" "}
-            <span className="text-green-600 dark:text-green-500 font-extrabold">
-              {calculateFinalWpm()} WPM
+            <span className="text-green-600 dark:text-green-500 font-extrabold text-xl md:text-2xl">
+            {calculateFinalWpm()} WPM <strong className="text-lime-600 dark:text-lime-500 text-sm md:text-base font-normal">({calculateFinalCpm()} CPM) </strong>  
             </span>
           </p>
-          <p>
-            <strong className="">Your Speed:</strong>{" "}
-            <span className="text-green-600 dark:text-green-500 font-extrabold">
-              {calculateFinalCpm()} CPM
-            </span>
-          </p>
+         
 
           {mistakenWords.length > 0 && (
             <div>
