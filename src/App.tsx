@@ -98,12 +98,12 @@ const App: React.FC = () => {
   };
 
   // Scroll to bottom
-  const scrollToBottom = () => {
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: "smooth",
-    });
-  };
+  // const scrollToBottom = () => {
+  //   window.scrollTo({
+  //     top: document.documentElement.scrollHeight,
+  //     behavior: "smooth",
+  //   });
+  // };
 
   // Check if the theme preference is already saved in localStorage
   useEffect(() => {

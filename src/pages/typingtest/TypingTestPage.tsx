@@ -22,7 +22,7 @@ const TypingTestPage: React.FC = () => {
   const [totalWordsTyped, setTotalWordsTyped] = useState(0);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
-  const [wpm, setWpm] = useState<number>(0);
+  // const [wpm, setWpm] = useState<number>(0);
   const [accuracy, setAccuracy] = useState<number>(0);
   const [completed, setCompleted] = useState<boolean>(false);
   const [endTime, setEndTime] = useState<number | null>(null);
@@ -124,15 +124,15 @@ const TypingTestPage: React.FC = () => {
     }
 
     // Update live WPM and accuracy
-    const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
+    // const minutesElapsed = (Date.now() - (startTime || Date.now())) / 60000;
     const totalTypedWords = totalWordsTyped + 1;
     const accuracyCalc =
       Math.max(0, (totalTypedWords - errors) / totalTypedWords) * 100;
-    const wpmCalc = Math.round(
-      (totalTypedWords - errors) / (minutesElapsed || 1)
-    );
+    // const wpmCalc = Math.round(
+    //   (totalTypedWords - errors) / (minutesElapsed || 1)
+    // );
 
-    setWpm(wpmCalc);
+    // setWpm(wpmCalc);
     setAccuracy(Math.round(accuracyCalc));
   };
 
@@ -143,7 +143,7 @@ const TypingTestPage: React.FC = () => {
     setMistakenWords([]);
     setStartTime(null);
     setTimeLeft(timeLimit);
-    setWpm(0);
+    // setWpm(0);
     setAccuracy(0);
     setCompleted(false);
     setTotalWordsTyped(0);
