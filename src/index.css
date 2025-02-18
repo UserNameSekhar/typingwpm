@@ -18,7 +18,6 @@ p.allow-select {
   user-select: text !important;
 }
 
-
 body::-webkit-scrollbar {
   display: none; /* Hide scrollbar */
   font-family: "Roboto", sans-serif;
@@ -80,15 +79,18 @@ body::-webkit-scrollbar {
   top: 2px;
   transition: transform 0.3s ease-out;
   animation: blink 1s steps(2, start) infinite;
-  
 }
 
 @keyframes blink {
-  from{
-    opacity: 1;
+  50% {
+    opacity: 0.2;
   }
-  to {
-    opacity: 0.1;
-    /* visibility: hidden; */
-  }
+}
+
+.animate-blink {
+  animation: blink 1s infinite;
+}
+
+.smooth-move {
+  transition: left 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
 }

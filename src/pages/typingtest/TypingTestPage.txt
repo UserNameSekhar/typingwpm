@@ -1206,6 +1206,1022 @@ const TypingTestPage: React.FC = () => {
 export default TypingTestPage;
 
 
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+FINAL WITH WORDS Version
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import TypingCheckBox from "../../components/typing-test/TypingCheckBox";
+import TypingComponent from "../../components/typing-test/TypingComponent";
+import TypingTestPageHeader from "../../components/typing-test/TypingTestPageHeader";
+import TypingTestResults from "../../components/typing-test/TypingTestResults";
+import { typingTestConfig } from "../../config/typingConfig";
+
+interface MistakenWord {
+  index: number;
+  mistaken: string;
+  paragraphId: number;
+}
+
+const TypingTestPage: React.FC = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const type = params.get("type") || "Text";
+  const level = params.get("level") || "Basic";
+  const timeLimit =
+    parseInt(params.get("time")?.replace("min", "") || "1") * 60;
+
+  const [paragraph, setParagraph] = useState<string[]>([]);
+  const [allParagraphs, setAllParagraphs] = useState<string[][]>([]);
+  const [paragraphId, setParagraphId] = useState<number>(0);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [userInput, setUserInput] = useState<string>("");
+  const [errors, setErrors] = useState(0);
+  const [mistakenWords, setMistakenWords] = useState<MistakenWord[]>([]);
+  const [totalCharsTyped, setTotalCharsTyped] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
+  const [accuracy, setAccuracy] = useState<number>(0);
+  const [completed, setCompleted] = useState<boolean>(false);
+  const [endTime, setEndTime] = useState<number | null>(null);
+  const [cursorPosition, setCursorPosition] = useState<number>(0);
+  const [characterErrors, setCharacterErrors] = useState<boolean[][]>([]);
+
+  useEffect(() => {
+    fetchNewParagraph();
+  }, [type, level]);
+
+  useEffect(() => {
+    if (startTime && timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0) {
+      setCompleted(true);
+      setEndTime(Date.now());
+    }
+  }, [timeLeft, startTime]);
+
+  const fetchNewParagraph = () => {
+    const typeKey = Object.keys(typingTestConfig).find(
+      (key) => key.toLowerCase() === type.toLowerCase()
+    );
+
+    if (!typeKey) {
+      setParagraph(["Error: Invalid type."]);
+      setAllParagraphs([["Error: Invalid type."]]);
+      return;
+    }
+
+    const levelKey = Object.keys(typingTestConfig[typeKey]).find(
+      (key) => key.toLowerCase() === level.toLowerCase()
+    );
+
+    if (!levelKey) {
+      setParagraph(["Error: Invalid level."]);
+      setAllParagraphs([["Error: Invalid level."]]);
+      return;
+    }
+
+    const texts = typingTestConfig[typeKey][levelKey] ?? [];
+    if (texts.length > 0) {
+      const randomText = texts[Math.floor(Math.random() * texts.length)];
+      const words = randomText.split(" ");
+      setParagraph(words);
+      setAllParagraphs((prev) => [...prev, words]);
+      setCurrentWordIndex(0);
+      setUserInput("");
+      setCharacterErrors(new Array(words.length).fill([]));
+      setParagraphId((prev) => prev + 1);
+    } else {
+      setParagraph(["Error: No text found for this mode."]);
+      setAllParagraphs([["Error: No text found for this mode."]]);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (completed) return;
+    if (!startTime) setStartTime(Date.now());
+
+    const value = e.target.value;
+    setCursorPosition(value.length);
+
+    // Prevent space before typing any character
+    if (value === " " && userInput === "") {
+      return;
+    }
+
+    setUserInput(value);
+
+    const currentWord = paragraph[currentWordIndex];
+
+    // Check each character for correctness
+    const newCharacterErrors = value
+      .split("")
+      .map((char, index) => char !== currentWord[index]);
+    setCharacterErrors((prev) => {
+      const newErrors = [...prev];
+      newErrors[currentWordIndex] = newCharacterErrors;
+      return newErrors;
+    });
+
+    // Check if the entire word matches exactly
+    if (value.endsWith(" ")) {
+      if (value.trim() === currentWord) {
+        // Correct word
+        setTotalCharsTyped((prev) => prev + value.length);
+      } else {
+        // Incorrect word
+        setErrors((prev) => prev + 1);
+        setMistakenWords((prev) => [
+          ...prev,
+          { index: currentWordIndex, mistaken: value.trim(), paragraphId },
+        ]);
+      }
+
+      setUserInput("");
+      setCurrentWordIndex((prev) => prev + 1);
+      setCursorPosition(0);
+
+      if (currentWordIndex + 1 >= paragraph.length) {
+        fetchNewParagraph();
+      }
+    }
+
+    // Update live accuracy
+    const totalTypedChars = totalCharsTyped + value.length;
+    const accuracyCalc =
+      Math.max(0, (totalTypedChars - errors) / totalTypedChars) * 100;
+    setAccuracy(accuracyCalc);
+  };
+
+  const restartTest = () => {
+    setCurrentWordIndex(0);
+    setUserInput("");
+    setErrors(0);
+    setMistakenWords([]);
+    setStartTime(null);
+    setTimeLeft(timeLimit);
+    setAccuracy(0);
+    setCompleted(false);
+    setTotalCharsTyped(0);
+    setEndTime(null);
+    setCharacterErrors([]);
+    fetchNewParagraph();
+  };
+
+  const calculateFinalWpm = () => {
+    if (!startTime || !endTime) return 0;
+    const minutesElapsed = (endTime - startTime) / 60000 || 1; // Prevent division by zero
+    return Math.max(
+      Math.round((totalCharsTyped / 5 - errors) / minutesElapsed),
+      0
+    );
+  };
+
+  const calculateFinalCpm = () => {
+    if (!startTime || !endTime) return 0;
+    const minutesElapsed = (endTime - startTime) / 60000 || 1; // Prevent division by zero
+    return Math.max(Math.round(totalCharsTyped / minutesElapsed), 0);
+  };
+
+  return (
+    <section className="min-h-[calc(100vh-100px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 text-light-textPrimary dark:text-dark-textPrimary">
+      <TypingTestPageHeader
+        type={type}
+        level={level}
+        timeLimit={timeLimit}
+        onNewTestClick={restartTest}
+      />
+
+      <TypingCheckBox
+        completed={completed}
+        totalCharsTyped={totalCharsTyped}
+        timeLimit={timeLimit}
+        accuracy={accuracy}
+        errors={errors}
+        startTime={startTime}
+        timeLeft={timeLeft}
+        calculateFinalWpm={calculateFinalWpm}
+        calculateFinalCpm={calculateFinalCpm}
+      />
+
+      {!completed ? (
+        <div className="w-full max-w-3xl mx-auto text-wrap overflow-hidden allow-select p-4 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
+          <p className="mb-4 text-wrap break-normal whitespace-normal allow-select">
+            {paragraph.map((word, wIndex) => {
+              const isMistaken = mistakenWords.some(
+                (mistake) => mistake.index === wIndex
+              );
+              const isCurrentWord = wIndex === currentWordIndex;
+
+              return (
+                <TypingComponent
+                  key={wIndex}
+                  word={word}
+                  cursorPosition={isCurrentWord ? cursorPosition : 0}
+                  currentWordIndex={currentWordIndex}
+                  wordIndex={wIndex}
+                  characterErrors={characterErrors[wIndex] || []}
+                  isMistaken={isMistaken}
+                  isCurrentWord={isCurrentWord}
+                />
+              );
+            })}
+          </p>
+
+          {/* Typing Input */}
+          <input
+            type="text"
+            value={userInput}
+            onChange={handleInputChange}
+            autoFocus
+            placeholder={startTime ? "" : "Start Typing Here..."}
+            className="w-full p-4 font-semibold text-lg tracking-wide md:text-xl border-b-2 border-gray-200 hover:border-gray-400 focus:border-gray-500 dark:border-gray-700 dark:hover:border-gray-500 dark:focus:border-gray-400 outline-none rounded-lg bg-white dark:bg-gray-900 whitespace-normal transition-all ease-in-out duration-300 delay-75"
+          />
+        </div>
+      ) : (
+        <>
+          <TypingTestResults
+            type={type}
+            level={level}
+            timeLimit={timeLimit}
+            errors={errors}
+            accuracy={accuracy}
+            totalCharsTyped={totalCharsTyped}
+            mistakenWords={mistakenWords}
+            calculateFinalWpm={calculateFinalWpm}
+            calculateFinalCpm={calculateFinalCpm}
+            allParagraphs={allParagraphs}
+            restartTest={restartTest}
+          />
+        </>
+      )}
+    </section>
+  );
+};
+
+export default TypingTestPage; import React from "react";
+
+interface TypingComponentProps {
+  word: string;
+  cursorPosition: number;
+  currentWordIndex: number;
+  wordIndex: number;
+  characterErrors: boolean[];
+  isMistaken: boolean;
+  isCurrentWord: boolean;
+}
+const TypingComponent: React.FC<TypingComponentProps> = ({
+  word,
+  cursorPosition,
+  currentWordIndex,
+  wordIndex,
+  characterErrors,
+  isMistaken,
+  isCurrentWord,
+}) => {
+  return (
+    <span
+      className={`mr-2 text-lg lg:text-xl inline-block tracking-wider relative ${
+        wordIndex < currentWordIndex
+          ? isMistaken
+            ? "text-red-500 dark:text-red-400"
+            : "text-green-500 dark:text-green-400"
+          : "text-gray-600 dark:text-gray-400"
+      }`}
+    >
+      {word.split("").map((char, index) => (
+        <span
+          key={index}
+          className={`relative inline-block ${char === " " ? "mr-2" : " "} ${
+            characterErrors[index] ? "underline" : ""
+          } ${
+            isCurrentWord
+              ? characterErrors[index]
+                ? "text-red-500 dark:text-red-400"
+                : index < cursorPosition
+                ? "text-green-500 dark:text-green-400"
+                : "text-gray-950 dark:text-gray-50"
+              : ""
+          }`}
+        >
+          {/* Cursor inside the current character, also visible on space */}
+          {isCurrentWord && index === cursorPosition && (
+            <span className="absolute top-0 left-0 h-full w-[2px] bg-black dark:bg-white animate-blink"></span>
+          )}
+          {char}
+        </span>
+      ))}
+    </span>
+  );
+};
+
+export default TypingComponent;
+see this two codes here everything is ok but here I have some problems first one is it Is showing cursor for every char, here you should consider space also a char so it should show cursor for space also I want this and other one is if I enter one word it is going to another word and there if I enter space instead of a particular char it is not showing char error and cursor is moving to next char and the char shows in green color but if I enter the next char means where the cursor there that char it shows error char it allows from first char only that is ok but it is not taking space as char and not showing that as error there so consider whole paragraph  including spaces also char, and in input box show only the current word to type once that word typed whether it is right or wrong it should gone and next word should shown
+
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+FINAL WITH WORDS Version
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+=======================================================================================
+
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import TypingCheckBox from "../../components/typing-test/TypingCheckBox";
+import TypingComponent from "../../components/typing-test/TypingComponent";
+import TypingTestPageHeader from "../../components/typing-test/TypingTestPageHeader";
+import TypingTestResults from "../../components/typing-test/TypingTestResults";
+import { typingTestConfig } from "../../config/typingConfig";
+
+interface MistakenWord {
+  index: number;
+  mistaken: string;
+  paragraphId: number;
+}
+
+const TypingTestPage: React.FC = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const type = params.get("type") || "Text";
+  const level = params.get("level") || "Basic";
+  const timeLimit =
+    parseInt(params.get("time")?.replace("min", "") || "1") * 60;
+
+  const [paragraph, setParagraph] = useState<string[]>([]);
+  const [allParagraphs, setAllParagraphs] = useState<string[][]>([]);
+  const [paragraphId, setParagraphId] = useState<number>(0);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [userInput, setUserInput] = useState<string>("");
+  const [errors, setErrors] = useState(0);
+  const [mistakenWords, setMistakenWords] = useState<MistakenWord[]>([]);
+  const [totalCharsTyped, setTotalCharsTyped] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
+  const [accuracy, setAccuracy] = useState<number>(0);
+  const [completed, setCompleted] = useState<boolean>(false);
+  const [endTime, setEndTime] = useState<number | null>(null);
+  const [characterErrors, setCharacterErrors] = useState<boolean[][]>([]);
+
+  useEffect(() => {
+    fetchNewParagraph();
+  }, [type, level]);
+
+  useEffect(() => {
+    if (startTime && timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0) {
+      setCompleted(true);
+      setEndTime(Date.now());
+    }
+  }, [timeLeft, startTime]);
+
+  const fetchNewParagraph = () => {
+    const typeKey = Object.keys(typingTestConfig).find(
+      (key) => key.toLowerCase() === type.toLowerCase()
+    );
+
+    if (!typeKey) {
+      setParagraph(["Error: Invalid type."]);
+      setAllParagraphs([["Error: Invalid type."]]);
+      return;
+    }
+
+    const levelKey = Object.keys(typingTestConfig[typeKey]).find(
+      (key) => key.toLowerCase() === level.toLowerCase()
+    );
+
+    if (!levelKey) {
+      setParagraph(["Error: Invalid level."]);
+      setAllParagraphs([["Error: Invalid level."]]);
+      return;
+    }
+
+    const texts = typingTestConfig[typeKey][levelKey] ?? [];
+    if (texts.length > 0) {
+      const randomText = texts[Math.floor(Math.random() * texts.length)];
+      const words = randomText.split(" ");
+      setParagraph(words);
+      setAllParagraphs((prev) => [...prev, words]);
+      setCurrentWordIndex(0);
+      setUserInput("");
+      setCharacterErrors(new Array(words.length).fill([]));
+      setParagraphId((prev) => prev + 1);
+    } else {
+      setParagraph(["Error: No text found for this mode."]);
+      setAllParagraphs([["Error: No text found for this mode."]]);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (completed) return;
+    if (!startTime) setStartTime(Date.now());
+
+    const value = e.target.value;
+
+    // Prevent space before typing any character
+    if (value === " " && userInput === "") {
+      return;
+    }
+
+    setUserInput(value); // Set the current input value
+
+    const currentWord = paragraph[currentWordIndex];
+
+    // Character error tracking (including spaces)
+    const newCharacterErrors = value.split("").map((char, index) => {
+      return index < currentWord.length ? char !== currentWord[index] : false; // Handle input beyond word length
+    });
+
+    setCharacterErrors((prev) => {
+      const newErrors = [...prev];
+      newErrors[currentWordIndex] = newCharacterErrors;
+      return newErrors;
+    });
+
+    // Word completion logic
+    if (value.endsWith(" ")) {
+      const enteredWord = value.trim();
+      const isCorrect = enteredWord === currentWord;
+
+      setTotalCharsTyped((prev) => prev + value.length); // Count all typed chars including space
+
+      if (!isCorrect) {
+        setErrors((prev) => prev + 1);
+        setMistakenWords((prev) => [
+          ...prev,
+          { index: currentWordIndex, mistaken: enteredWord, paragraphId },
+        ]);
+      }
+
+      setUserInput(""); // Clear input for the next word
+      setCurrentWordIndex((prev) => prev + 1);
+
+      if (currentWordIndex + 1 >= paragraph.length) {
+        fetchNewParagraph();
+      }
+    }
+
+    // Live accuracy calculation (including spaces)
+    const totalTypedChars = totalCharsTyped + value.length;
+    const accuracyCalc =
+      totalTypedChars > 0
+        ? Math.max(0, (totalTypedChars - errors) / totalTypedChars) * 100
+        : 0;
+    setAccuracy(accuracyCalc);
+  };
+
+  const restartTest = () => {
+    setCurrentWordIndex(0);
+    setUserInput("");
+    setErrors(0);
+    setMistakenWords([]);
+    setStartTime(null);
+    setTimeLeft(timeLimit);
+    setAccuracy(0);
+    setCompleted(false);
+    setTotalCharsTyped(0);
+    setEndTime(null);
+    setCharacterErrors([]);
+    fetchNewParagraph();
+  };
+
+  const calculateFinalWpm = () => {
+    if (!startTime || !endTime) return 0;
+    const minutesElapsed = (endTime - startTime) / 60000 || 1; // Prevent division by zero
+    return Math.max(
+      Math.round((totalCharsTyped / 5 - errors) / minutesElapsed),
+      0
+    );
+  };
+
+  const calculateFinalCpm = () => {
+    if (!startTime || !endTime) return 0;
+    const minutesElapsed = (endTime - startTime) / 60000 || 1; // Prevent division by zero
+    return Math.max(Math.round(totalCharsTyped / minutesElapsed), 0);
+  };
+
+  return (
+    <section className="min-h-[calc(100vh-100px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 text-light-textPrimary dark:text-dark-textPrimary">
+      <TypingTestPageHeader
+        type={type}
+        level={level}
+        timeLimit={timeLimit}
+        onNewTestClick={restartTest}
+      />
+
+      <TypingCheckBox
+        completed={completed}
+        totalCharsTyped={totalCharsTyped}
+        timeLimit={timeLimit}
+        accuracy={accuracy}
+        errors={errors}
+        startTime={startTime}
+        timeLeft={timeLeft}
+        calculateFinalWpm={calculateFinalWpm}
+        calculateFinalCpm={calculateFinalCpm}
+      />
+
+      {!completed ? (
+        <div className="w-full max-w-3xl mx-auto text-wrap overflow-hidden allow-select p-4 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
+          <p className="mb-4 text-wrap break-normal whitespace-normal allow-select">
+            {paragraph.map((word, wIndex) => (
+              <TypingComponent
+                key={wIndex}
+                word={word}
+                cursorPosition={
+                  wIndex === currentWordIndex ? userInput.length : 0
+                } // Cursor based on userInput
+                currentWordIndex={currentWordIndex}
+                wordIndex={wIndex}
+                characterErrors={characterErrors[wIndex] || []}
+                isMistaken={mistakenWords.some(
+                  (mistake) => mistake.index === wIndex
+                )}
+                isCurrentWord={wIndex === currentWordIndex}
+              />
+            ))}
+          </p>
+
+          {/* Typing Input - Shows only current word's input */}
+          <input
+            type="text"
+            value={userInput}
+            onChange={handleInputChange}
+            autoFocus
+            placeholder={startTime ? "" : "Start Typing Here..."}
+            className="w-full p-4 font-semibold text-lg tracking-wide md:text-xl border-b-2 border-gray-200 hover:border-gray-400 focus:border-gray-500 dark:border-gray-700 dark:hover:border-gray-500 dark:focus:border-gray-400 outline-none rounded-lg bg-white dark:bg-gray-900 whitespace-normal transition-all ease-in-out duration-300 delay-75"
+          />
+        </div>
+      ) : (
+        <>
+          <TypingTestResults
+            type={type}
+            level={level}
+            timeLimit={timeLimit}
+            errors={errors}
+            accuracy={accuracy}
+            totalCharsTyped={totalCharsTyped}
+            mistakenWords={mistakenWords}
+            calculateFinalWpm={calculateFinalWpm}
+            calculateFinalCpm={calculateFinalCpm}
+            allParagraphs={allParagraphs}
+            restartTest={restartTest}
+          />
+        </>
+      )}
+    </section>
+  );
+};
+
+export default TypingTestPage;
+ import React from "react";
+
+interface TypingComponentProps {
+  word: string;
+  cursorPosition: number;
+  currentWordIndex: number;
+  wordIndex: number;
+  characterErrors: boolean[];
+  isMistaken: boolean;
+  isCurrentWord: boolean;
+}
+const TypingComponent: React.FC<TypingComponentProps> = ({
+  word,
+  cursorPosition,
+  currentWordIndex,
+  wordIndex,
+  characterErrors,
+  isMistaken,
+  isCurrentWord,
+}) => {
+  return (
+    <span
+      className={`mr-2 text-lg lg:text-xl inline-block tracking-wider relative ${
+        wordIndex < currentWordIndex
+          ? isMistaken
+            ? "text-red-500 dark:text-red-400"
+            : "text-green-500 dark:text-green-400"
+          : "text-gray-600 dark:text-gray-400"
+      }`}
+    >
+      {word.split("").map((char, index) => (
+        <span
+          key={index}
+          className={`relative inline-block ${char === " " ? " " : ""} ${
+            characterErrors[index] ? "underline" : ""
+          } ${
+            isCurrentWord
+              ? characterErrors[index]
+                ? "text-red-500 dark:text-red-400"
+                : index < cursorPosition
+                ? "text-green-500 dark:text-green-400"
+                : "text-gray-950 dark:text-gray-50"
+              : ""
+          }`}
+        >
+          {/* Cursor logic - only show on current word and at correct position*/}
+          {isCurrentWord && index === cursorPosition && (
+            <span className="absolute top-0 left-0 h-full w-[2px] bg-black dark:bg-white animate-blink"></span>
+          )}
+          {char}
+        </span>
+      ))}
+    </span>
+  );
+};
+
+export default TypingComponent;
+
+
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import TypingCheckBox from "../../components/typing-test/TypingCheckBox";
+import TypingComponent from "../../components/typing-test/TypingComponent";
+import TypingTestPageHeader from "../../components/typing-test/TypingTestPageHeader";
+import TypingTestResults from "../../components/typing-test/TypingTestResults";
+import { typingTestConfig } from "../../config/typingConfig";
+
+interface MistakenWord {
+  index: number;
+  mistaken: string;
+  paragraph: string[];
+}
+
+const TypingTestPage: React.FC = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const type = params.get("type") || "Text";
+  const level = params.get("level") || "Basic";
+  const timeLimit =
+    parseInt(params.get("time")?.replace("min", "") || "1") * 60;
+
+  const [paragraph, setParagraph] = useState<string[]>([]);
+  const [allParagraphs, setAllParagraphs] = useState<string[][]>([]);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [userInput, setUserInput] = useState<string>("");
+  const [errors, setErrors] = useState(0);
+  const [mistakenWords, setMistakenWords] = useState<MistakenWord[]>([]);
+  const [totalCharsTyped, setTotalCharsTyped] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(timeLimit);
+  const [accuracy, setAccuracy] = useState<number>(0);
+  const [completed, setCompleted] = useState<boolean>(false);
+  const [endTime, setEndTime] = useState<number | null>(null);
+  const [characterErrors, setCharacterErrors] = useState<boolean[][]>([]);
+
+  useEffect(() => {
+    fetchNewParagraph();
+  }, [type, level]);
+
+  useEffect(() => {
+    if (startTime && timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0) {
+      setCompleted(true);
+      setEndTime(Date.now());
+    }
+  }, [timeLeft, startTime]);
+
+  const fetchNewParagraph = () => {
+    const typeKey = Object.keys(typingTestConfig).find(
+      (key) => key.toLowerCase() === type.toLowerCase()
+    );
+
+    if (!typeKey) {
+      setParagraph(["Error: Invalid type."]);
+      setAllParagraphs([["Error: Invalid type."]]);
+      return;
+    }
+
+    const levelKey = Object.keys(typingTestConfig[typeKey]).find(
+      (key) => key.toLowerCase() === level.toLowerCase()
+    );
+
+    if (!levelKey) {
+      setParagraph(["Error: Invalid level."]);
+      setAllParagraphs([["Error: Invalid level."]]);
+      return;
+    }
+
+    const texts = typingTestConfig[typeKey][levelKey] ?? [];
+    if (texts.length > 0) {
+      const randomText = texts[Math.floor(Math.random() * texts.length)];
+      const words = randomText.split(" ");
+      setParagraph(words);
+      setAllParagraphs((prev) => [...prev, words]);
+      setCurrentWordIndex(0);
+      setUserInput("");
+      setCharacterErrors(new Array(words.length).fill([]));
+      setMistakenWords([]);
+    } else {
+      setParagraph(["Error: No text found for this mode."]);
+      setAllParagraphs([["Error: No text found for this mode."]]);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (completed) return;
+    if (!startTime) setStartTime(Date.now());
+  
+    const value = e.target.value;
+  
+    // Prevent space before typing any character
+    if (value === " " && userInput === "") {
+      return;
+    }
+  
+    setUserInput(value); // Set the current input value
+  
+    const currentWord = paragraph[currentWordIndex];
+  
+    // Character error tracking (including spaces)
+    const newCharacterErrors = value.split("").map((char, index) => {
+      return index < currentWord.length ? char !== currentWord[index] : false; // Handle input beyond word length
+    });
+  
+    setCharacterErrors((prev) => {
+      const newErrors = [...prev];
+      newErrors[currentWordIndex] = newCharacterErrors;
+      return newErrors;
+    });
+  
+    // Word completion logic
+    if (value.endsWith(" ")) {
+      const enteredWord = value.trim();
+      const isCorrect = enteredWord === currentWord;
+  
+      setTotalCharsTyped((prev) => prev + value.length); // Count all typed chars including space
+  
+      if (!isCorrect) {
+        setErrors((prev) => prev + 1);
+        setMistakenWords((prev) => [
+          ...prev,
+          { index: currentWordIndex, mistaken: enteredWord, paragraph },
+        ]);
+      }
+  
+      setUserInput(""); // Clear input for the next word
+      setCurrentWordIndex((prev) => prev + 1);
+  
+      if (currentWordIndex + 1 >= paragraph.length) {
+        fetchNewParagraph();
+      }
+    }
+  
+    // Live accuracy calculation (including spaces)
+    const totalTypedChars = totalCharsTyped + value.length;
+    const accuracyCalc =
+      totalTypedChars > 0
+        ? Math.max(0, (totalTypedChars - errors) / totalTypedChars) * 100
+        : 0;
+    setAccuracy(accuracyCalc);
+  };
+
+  const restartTest = () => {
+    setCurrentWordIndex(0);
+    setUserInput("");
+    setErrors(0);
+    setMistakenWords([]);
+    setStartTime(null);
+    setTimeLeft(timeLimit);
+    setAccuracy(0);
+    setCompleted(false);
+    setTotalCharsTyped(0);
+    setEndTime(null);
+    setCharacterErrors([]);
+    fetchNewParagraph();
+  };
+
+  const calculateFinalWpm = () => {
+    if (!startTime || !endTime) return 0;
+    const minutesElapsed = (endTime - startTime) / 60000 || 1; // Prevent division by zero
+    return Math.max(
+      Math.round((totalCharsTyped / 5 - errors) / minutesElapsed),
+      0
+    );
+  };
+
+  const calculateFinalCpm = () => {
+    if (!startTime || !endTime) return 0;
+    const minutesElapsed = (endTime - startTime) / 60000 || 1; // Prevent division by zero
+    return Math.max(Math.round(totalCharsTyped / minutesElapsed), 0);
+  };
+
+  return (
+    <section className="min-h-[calc(100vh-100px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 text-light-textPrimary dark:text-dark-textPrimary">
+      <TypingTestPageHeader
+        type={type}
+        level={level}
+        timeLimit={timeLimit}
+        onNewTestClick={restartTest}
+      />
+
+      <TypingCheckBox
+        completed={completed}
+        totalCharsTyped={totalCharsTyped}
+        timeLimit={timeLimit}
+        accuracy={accuracy}
+        errors={errors}
+        startTime={startTime}
+        timeLeft={timeLeft}
+        calculateFinalWpm={calculateFinalWpm}
+        calculateFinalCpm={calculateFinalCpm}
+      />
+
+      {!completed ? (
+        <div className="w-full max-w-3xl mx-auto text-wrap overflow-hidden allow-select p-4 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
+          <p className="mb-4 text-wrap break-normal whitespace-normal allow-select">
+            {paragraph.map((word, wIndex) => (
+              <TypingComponent
+                key={wIndex}
+                word={word}
+                cursorPosition={
+                  wIndex === currentWordIndex ? userInput.length : 0
+                } // Cursor based on userInput
+                currentWordIndex={currentWordIndex}
+                wordIndex={wIndex}
+                characterErrors={characterErrors[wIndex] || []}
+                isMistaken={mistakenWords.some(
+                  (mistake) => mistake.index === wIndex
+                )}
+                isCurrentWord={wIndex === currentWordIndex}
+              />
+            ))}
+          </p>
+
+          {/* Typing Input - Shows only current word's input */}
+          <input
+            type="text"
+            value={userInput}
+            onChange={handleInputChange}
+            autoFocus
+            placeholder={startTime ? "" : "Start Typing Here..."}
+            className="w-full p-4 font-semibold text-lg tracking-wide md:text-xl border-b-2 border-gray-200 hover:border-gray-400 focus:border-gray-500 dark:border-gray-700 dark:hover:border-gray-500 dark:focus:border-gray-400 outline-none rounded-lg bg-white dark:bg-gray-900 whitespace-normal transition-all ease-in-out duration-300 delay-75"
+          />
+        </div>
+      ) : (
+        <>
+          <TypingTestResults
+            type={type}
+            level={level}
+            timeLimit={timeLimit}
+            errors={errors}
+            accuracy={accuracy}
+            totalCharsTyped={totalCharsTyped}
+            mistakenWords={mistakenWords}
+            calculateFinalWpm={calculateFinalWpm}
+            calculateFinalCpm={calculateFinalCpm}
+            allParagraphs={allParagraphs}
+            restartTest={restartTest}
+          />
+        </>
+      )}
+    </section>
+  );
+};
+
+export default TypingTestPage;
+import { RefreshCw } from "lucide-react";
+import React from "react";
+
+interface MistakenWord {
+  index: number;
+  mistaken: string;
+  paragraph: string[]; // The paragraph is now here
+}
+interface TTRProps {
+  type: string;
+  level: string;
+  timeLimit: number;
+  totalCharsTyped: number;
+  errors: number;
+  accuracy: number;
+  calculateFinalWpm: () => number;
+  mistakenWords: MistakenWord[];
+  allParagraphs: string[][]; // Pass all paragraphs
+  calculateFinalCpm: () => number;
+  restartTest: () => void;
+}
+
+const TypingTestResults: React.FC<TTRProps> = ({
+  type,
+  level,
+  timeLimit,
+  totalCharsTyped,
+  errors,
+  accuracy,
+  calculateFinalWpm,
+  mistakenWords,
+  allParagraphs, // Destructure allParagraphs
+  calculateFinalCpm,
+  restartTest,
+}) => {
+  console.log(allParagraphs);
+  return (
+    <>
+      <div className="w-full max-w-3xl mx-auto p-8 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
+        <div className="flex items-center justify-between border-b pb-3 mb-4 border-gray-300 dark:border-gray-700">
+          <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-light-textPrimary dark:text-dark-textPrimary ">
+            Test Results
+          </h3>
+
+          <button
+            onClick={() => restartTest()}
+            className=" bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center justify-center text-lg font-semibold shadow-md transition-all duration-300"
+          >
+            <RefreshCw className="mr-2 w-5 h-5" /> Restart Test
+          </button>
+        </div>
+
+        <div className="space-y-2 text-lg text-gray-700 dark:text-gray-300">
+          <p className="capitalize">
+            <strong className=" capitalize">Type:</strong> {type}
+          </p>
+          <p className="capitalize">
+            <strong className=" capitalize">Level:</strong> {level}
+          </p>
+          <p className="capitalize">
+            <strong className=" capitalize">Time:</strong> {timeLimit}sec
+          </p>
+          <p className="capitalize">
+            <strong className=" capitalize">Total Typed Words:</strong>{" "}
+            {Math.round(totalCharsTyped / 5)}
+          </p>
+          <p>
+            <strong className="">Total Errors:</strong> {errors}
+          </p>
+          <p>
+            <strong className="">Accuracy:</strong> {accuracy.toFixed(2)}%
+          </p>
+          <p>
+            <strong className="">Your Speed:</strong>{" "}
+            <span className="text-green-600 dark:text-green-500 font-extrabold text-xl md:text-2xl">
+              {calculateFinalWpm()} WPM{" "}
+              <strong className="text-lime-600 dark:text-lime-500 text-sm md:text-base font-normal">
+                ({calculateFinalCpm()} CPM){" "}
+              </strong>
+            </span>
+          </p>
+
+          {mistakenWords.length > 0 && (
+            <div>
+              <strong>Mistaken Words:</strong>
+              {mistakenWords.length > 0 ? (
+                <ol className="mt-2 pl-10 list-decimal space-y-1 text-gray-800 dark:text-gray-300 max-h-[320px] overflow-auto">
+                  {mistakenWords.map((wordPair, index) => {
+                    const originalWord =
+                      wordPair.paragraph[wordPair.index] || "Unknown"; // Access the paragraph directly
+                    return (
+                      <li
+                        key={index}
+                        className="flex items-center gap-3 font-medium"
+                      >
+                        <span className="text-gray-700 dark:text-gray-400">
+                          {index + 1}.
+                        </span>
+                        <span className="text-green-600 dark:text-green-400">
+                          {originalWord}{" "}
+                          {/* Use the original word from allParagraphs */}
+                        </span>
+                        <span className="text-gray-500">→</span>
+                        <span className="text-red-600 dark:text-red-500">
+                          {wordPair.mistaken}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              ) : (
+                <p className="mt-1 text-green-600 dark:text-green-400">None</p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default TypingTestResults;
+
+
 
 
 

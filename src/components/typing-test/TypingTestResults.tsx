@@ -1,9 +1,11 @@
 import { RefreshCw } from "lucide-react";
 import React from "react";
 
-interface MistakenWords {
-  index: number;
-  mistaken: string;
+interface MistakenWord {
+  paragraphIndex: number; // Track which paragraph the mistake belongs to
+  wordIndex: number; // Track the word index within the paragraph
+  mistaken: string; // The incorrect word typed by the user
+  correctWord: string; // The correct word from the paragraph
 }
 
 interface TTRProps {
@@ -14,8 +16,8 @@ interface TTRProps {
   errors: number;
   accuracy: number;
   calculateFinalWpm: () => number;
-  mistakenWords: MistakenWords[];
-  paragraph: string[];
+  mistakenWords: MistakenWord[];
+  allParagraphs: string[][]; // Pass all paragraphs
   calculateFinalCpm: () => number;
   restartTest: () => void;
 }
@@ -29,10 +31,11 @@ const TypingTestResults: React.FC<TTRProps> = ({
   accuracy,
   calculateFinalWpm,
   mistakenWords,
-  paragraph,
+  allParagraphs, // Destructure allParagraphs
   calculateFinalCpm,
   restartTest,
 }) => {
+  console.log(allParagraphs);
   return (
     <>
       <div className="w-full max-w-3xl mx-auto p-8 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
@@ -51,38 +54,40 @@ const TypingTestResults: React.FC<TTRProps> = ({
 
         <div className="space-y-2 text-lg text-gray-700 dark:text-gray-300">
           <p className="capitalize">
-            <strong className=" capitalize">Type:</strong> {type}
+            <strong className=" capitalize">Type :</strong> {type}
           </p>
           <p className="capitalize">
-            <strong className=" capitalize">Level:</strong> {level}
+            <strong className=" capitalize">Level :</strong> {level}
           </p>
           <p className="capitalize">
-            <strong className=" capitalize">Time:</strong> {timeLimit}sec
+            <strong className=" capitalize">Time :</strong> {timeLimit}sec
           </p>
           <p className="capitalize">
-            <strong className=" capitalize">Total Typed Words:</strong>{" "}
+            <strong className=" capitalize">Total Typed Words :</strong>{" "}
             {Math.round(totalCharsTyped / 5)}
           </p>
           <p>
-            <strong className="">Total Errors:</strong> {errors}
+            <strong className="">Total Errors :</strong> {errors}
           </p>
           <p>
-            <strong className="">Accuracy:</strong> {accuracy.toFixed(2)}%
+            <strong className="">Accuracy :</strong> {accuracy.toFixed(2)}%
           </p>
           <p>
-            <strong className="">Your Speed:</strong>{" "}
+            <strong className="">Your Speed :</strong>{" "}
             <span className="text-green-600 dark:text-green-500 font-extrabold text-xl md:text-2xl">
-            {calculateFinalWpm()} WPM <strong className="text-lime-600 dark:text-lime-500 text-sm md:text-base font-normal">({calculateFinalCpm()} CPM) </strong>  
+              {calculateFinalWpm()} WPM{" "}
+              <strong className="text-lime-600 dark:text-lime-500 text-sm md:text-base font-normal">
+                ({calculateFinalCpm()} CPM){" "}
+              </strong>
             </span>
           </p>
-         
 
           {mistakenWords.length > 0 && (
             <div>
-              <strong>Mistaken Words:</strong>
+              <strong>Mistaken Words : </strong>
               {mistakenWords.length > 0 ? (
                 <ol className="mt-2 pl-10 list-decimal space-y-1 text-gray-800 dark:text-gray-300 max-h-[320px] overflow-auto">
-                  {mistakenWords.map((wordPair, index) => (
+                  {mistakenWords.map((mistake, index) => (
                     <li
                       key={index}
                       className="flex items-center gap-3 font-medium"
@@ -91,11 +96,11 @@ const TypingTestResults: React.FC<TTRProps> = ({
                         {index + 1}.
                       </span>
                       <span className="text-green-600 dark:text-green-400">
-                        {paragraph[wordPair.index]}
+                        {mistake.correctWord}
                       </span>
                       <span className="text-gray-500">→</span>
                       <span className="text-red-600 dark:text-red-500">
-                        {wordPair.mistaken}
+                        {mistake.mistaken}
                       </span>
                     </li>
                   ))}
