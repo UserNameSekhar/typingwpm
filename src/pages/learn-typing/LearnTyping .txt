@@ -1,0 +1,303 @@
+================================
+DeepSeek
+================================
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { ChevronDown, Keyboard, MousePointerClick } from "lucide-react";
+
+const TypingTestPage: React.FC = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const type = params.get("type") || "Text";
+  const level = params.get("level") || "Basic";
+
+  // State for dropdowns and levels
+  const [selectedCategory, setSelectedCategory] = useState("Learn Text");
+  const [selectedLevel, setSelectedLevel] = useState("Level 1: ASDF");
+  const [keyboardInput, setKeyboardInput] = useState("");
+
+  // Sample data for levels
+  const categories = ["Learn Text", "Learn Numbers", "Learn Symbols"];
+  const levels = [
+    "Level 1: ASDF",
+    "Level 2: JKL;",
+    "Level 3: QWER",
+    "Level 4: UIOP",
+    "Level 5: ZXCV",
+  ];
+
+  // Handle category change
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setSelectedLevel("Level 1: ASDF"); // Reset level on category change
+  };
+
+  // Handle level change
+  const handleLevelChange = (level: string) => {
+    setSelectedLevel(level);
+  };
+
+  // Handle keyboard input
+  const handleKeyboardInput = (key: string) => {
+    setKeyboardInput((prev) => prev + key);
+  };
+
+  // Handle physical keyboard input
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key.length === 1) {
+        handleKeyboardInput(e.key);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  return (
+    <section className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
+      {/* Sidebar (20%) */}
+      <aside className="w-full md:w-1/5 p-6 bg-white dark:bg-gray-800 shadow-lg">
+        <div className="space-y-6">
+          {/* Category Dropdown */}
+          <div className="relative">
+            <select
+              value={selectedCategory}
+              onChange={(e) => handleCategoryChange(e.target.value)}
+              className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-3.5 h-5 w-5 text-gray-500 dark:text-gray-400 pointer-events-none" />
+          </div>
+
+          {/* Level Buttons */}
+          <div className="space-y-3">
+            {levels.map((level) => (
+              <button
+                key={level}
+                onClick={() => handleLevelChange(level)}
+                className={`w-full p-3 rounded-lg text-left transition-all duration-300 ${
+                  selectedLevel === level
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+              >
+                {level}
+              </button>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content (80%) */}
+      <main className="w-full md:w-4/5 p-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Level Content */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-4">{selectedLevel}</h2>
+            <p className="text-lg text-gray-700 dark:text-gray-300">
+              {selectedLevel === "Level 1: ASDF"
+                ? "asdf asdf asdf asdf"
+                : selectedLevel === "Level 2: JKL;"
+                ? "jkl; jkl; jkl; jkl;"
+                : "Type the following..."}
+            </p>
+          </div>
+
+          {/* Input Box */}
+          <div className="mb-8">
+            <input
+              type="text"
+              value={keyboardInput}
+              onChange={(e) => setKeyboardInput(e.target.value)}
+              placeholder="Start typing here..."
+              className="w-full p-4 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Virtual Keyboard */}
+          <div className="bg-gray-200 dark:bg-gray-700 p-6 rounded-lg">
+            <div className="grid grid-cols-10 gap-2">
+              {[
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "0",
+                "Q",
+                "W",
+                "E",
+                "R",
+                "T",
+                "Y",
+                "U",
+                "I",
+                "O",
+                "P",
+                "A",
+                "S",
+                "D",
+                "F",
+                "G",
+                "H",
+                "J",
+                "K",
+                "L",
+                ";",
+                "Z",
+                "X",
+                "C",
+                "V",
+                "B",
+                "N",
+                "M",
+                ",",
+                ".",
+                "/",
+              ].map((key) => (
+                <button
+                  key={key}
+                  onClick={() => handleKeyboardInput(key.toLowerCase())}
+                  className="p-3 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300"
+                >
+                  {key}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </main>
+    </section>
+  );
+};
+
+export default TypingTestPage;
+
+=================================
+GPT
+==================================
+import { useState, useEffect } from "react";
+import { ChevronDown, Keyboard } from "lucide-react";
+
+const levels = [
+  { id: 1, name: "Level 1: ASDF" },
+  { id: 2, name: "Level 2: JKL;" },
+  { id: 3, name: "Level 3: Advanced" },
+];
+
+const modes = ["Learn Text", "Learn Numbers", "Learn Symbols"];
+
+const TypingPractice = () => {
+  const [selectedMode, setSelectedMode] = useState(modes[0]);
+  const [selectedLevel, setSelectedLevel] = useState(levels[0].name);
+  const [typedText, setTypedText] = useState("");
+  const [keyPressed, setKeyPressed] = useState<string | null>(null);
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    setKeyPressed(e.key);
+    setTypedText((prev) => prev + e.key);
+  };
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-200 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
+      <div className="grid grid-cols-12 gap-4 p-6">
+        {/* Sidebar - 20% width */}
+        <aside className="col-span-2 bg-white dark:bg-gray-900 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="relative">
+            <button className="w-full flex justify-between items-center bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md">
+              {selectedMode} <ChevronDown />
+            </button>
+            <ul className="absolute w-full mt-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg">
+              {modes.map((mode) => (
+                <li
+                  key={mode}
+                  className="px-4 py-2 cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-700"
+                  onClick={() => setSelectedMode(mode)}
+                >
+                  {mode}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-6">
+            {levels.map((level) => (
+              <button
+                key={level.id}
+                className={`block w-full px-4 py-2 my-2 text-left rounded-lg transition ${
+                  selectedLevel === level.name
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-800"
+                }`}
+                onClick={() => setSelectedLevel(level.name)}
+              >
+                {level.name}
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        {/* Main Typing Area - 80% width */}
+        <main className="col-span-10 bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+          {/* Level Instructions */}
+          <div className="text-lg font-semibold text-center">
+            Practice: <span className="text-blue-600">{selectedLevel}</span>
+          </div>
+
+          {/* Typing Display */}
+          <div className="mt-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-xl text-center tracking-wide">
+            {typedText || "Start Typing..."}
+          </div>
+
+          {/* Typing Input */}
+          <input
+            type="text"
+            value={typedText}
+            onChange={(e) => setTypedText(e.target.value)}
+            className="w-full p-4 mt-4 border rounded-lg text-lg outline-none focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700"
+            placeholder="Type here..."
+            autoFocus
+          />
+
+          {/* Virtual Keyboard */}
+          <div className="mt-6 grid grid-cols-10 gap-1 bg-gray-200 dark:bg-gray-800 p-4 rounded-lg shadow-md">
+            {[
+              ..."QWERTYUIOPASDFGHJKLZXCVBNM".split(""),
+              "Space",
+              "Enter",
+              "Backspace",
+            ].map((key) => (
+              <div
+                key={key}
+                className={`p-3 rounded-md text-center font-bold bg-gray-300 dark:bg-gray-700 ${
+                  keyPressed === key.toLowerCase()
+                    ? "bg-blue-500 text-white shadow-lg"
+                    : ""
+                }`}
+              >
+                {key}
+              </div>
+            ))}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default TypingPractice;

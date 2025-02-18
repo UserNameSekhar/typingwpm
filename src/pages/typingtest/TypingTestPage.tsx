@@ -191,7 +191,7 @@ const TypingTestPage: React.FC = () => {
   };
 
   return (
-    <section className="min-h-[calc(100vh-100px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 text-light-textPrimary dark:text-dark-textPrimary">
+    <section className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 text-light-textPrimary dark:text-dark-textPrimary bg-gradient-to-tl from-cyan-50 via-cyan-50 dark:from-cyan-950/20 dark:via-cyan-900/20 dark:to-orange-900/20 to-orange-100">
       <TypingTestPageHeader
         type={type}
         level={level}
@@ -212,7 +212,7 @@ const TypingTestPage: React.FC = () => {
       />
 
       {!completed ? (
-        <div className="w-full max-w-3xl mx-auto text-wrap overflow-hidden allow-select p-4 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
+        <div className="w-full max-w-3xl mx-auto text-wrap overflow-hidden allow-select p-4 md:p-6 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-transparent dark:border-gray-800 transition-all duration-300">
           <p className="mb-4 text-wrap break-normal whitespace-normal allow-select">
             {paragraph.map((word, wIndex) => (
               <TypingComponent

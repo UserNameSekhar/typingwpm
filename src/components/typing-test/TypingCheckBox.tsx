@@ -25,7 +25,7 @@ const TypingCheckBox: React.FC<TCBProps> = ({
 }) => {
   return (
     <>
-      <div className="w-full max-w-3xl mx-auto mb-4 p-4 md:p-6 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
+      <div className="w-full max-w-3xl mx-auto mb-4 p-4 md:p-6 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-transparent dark:border-gray-800 transition-all duration-300">
         {completed ? (
           <div className="flex flex-col items-center justify-center">
             <div className="flex items-center justify-center gap-1 md:gap-2">

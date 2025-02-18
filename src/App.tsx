@@ -9,6 +9,7 @@ import Header from "./components/layout/Header";
 import AboutPage from "./pages/about-page/AboutPage";
 import ContactPage from "./pages/contact-page/ContactPage";
 import HomePage from "./pages/home-page/HomePage";
+import LearnTyping from "./pages/learn-typing/LearnTyping";
 import PageNotFound from "./pages/page-not-found/PageNotFound";
 import PrivacyPolicy from "./pages/privacy-policy/PrivacyPolicy";
 import ProfilePage from "./pages/profile-page/ProfilePage";
@@ -157,6 +158,7 @@ const App: React.FC = () => {
           <Route path="/resources" element={<ResourcesPage />} />
 
           <Route path="/test" element={<TypingTestPage />} />
+          <Route path="/learn-typing" element={<LearnTyping />} />
 
           {/* Protected Routes */}
           <Route

@@ -7,7 +7,7 @@ import TypingTestSection from "../../components/layout/TypingTestSection";
 
 const HomePage: React.FC = () => {
   return (
-    <div>
+    <div className="bg-gradient-to-tl from-cyan-50 via-cyan-50 dark:from-cyan-950/20 dark:via-cyan-900/20 dark:to-orange-900/20 to-orange-100">
       {/* Hero Section */}
       <HeroSection />
 

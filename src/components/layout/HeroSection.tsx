@@ -6,7 +6,7 @@ const HeroSection: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative w-full  text-light-textPrimary dark:text-dark-textPrimary text-center py-8 sm:py-10 md:py-20 lg:py-24 px-6 flex flex-col items-center justify-center">
+    <section className="relative w-full bg-transparent  text-light-textPrimary dark:text-dark-textPrimary text-center py-8 sm:py-10 md:py-20 lg:py-24 px-6 flex flex-col items-center justify-center">
       {/* Background Overlay Effect */}
       {/* <div className="absolute inset-0 bg-black bg-opacity-30 backdrop-blur-md"></div> */}
 

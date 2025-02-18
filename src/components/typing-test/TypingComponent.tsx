@@ -23,8 +23,8 @@ const TypingComponent: React.FC<TypingComponentProps> = ({
       className={`mr-2 text-lg lg:text-xl inline-block tracking-wider relative ${
         wordIndex < currentWordIndex
           ? isMistaken
-            ? "text-red-500 dark:text-red-400"
-            : "text-green-500 dark:text-green-400"
+            ? "text-red-500 dark:text-orange-500"
+            : "text-emerald-600 dark:text-lime-500"
           : "text-gray-600 dark:text-gray-400"
       }`}
     >
@@ -36,9 +36,9 @@ const TypingComponent: React.FC<TypingComponentProps> = ({
           } ${
             isCurrentWord
               ? characterErrors[index]
-                ? "text-red-500 dark:text-red-400"
+                ? "text-red-500 dark:text-orange-500"
                 : index < cursorPosition
-                ? "text-green-500 dark:text-green-400"
+                ? "text-emerald-700 dark:text-lime-400"
                 : "text-gray-950 dark:text-gray-50"
               : ""
           }`}

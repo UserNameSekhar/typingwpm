@@ -30,7 +30,7 @@ const Leaderboard: React.FC = () => {
     : leaderboardData[activeTab].slice(0, 10);
 
   return (
-    <section className="px-4 sm:px-8 md:px-20 py-12">
+    <section className="px-4 sm:px-8 md:px-20 py-12 bg-transparent">
       {/* Leaderboard Header */}
       <div className="relative flex items-center justify-center gap-1.5 mb-6 text-center">
         <Medal className="text-yellow-500 dark:text-yellow-400 w-8 h-8 md:w-9 md:h-9"/>

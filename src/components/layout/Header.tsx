@@ -72,7 +72,7 @@ const Header: React.FC<HeaderProps> = ({
       {/* Reusable ThemeOverlay Component */}
       <ThemeOverlay isDarkMode={isDarkMode} showOverlay={showOverlay} />
       <header
-        className={`sticky top-0 z-40 bg-gray-50/40 dark:bg-gray-900/40 backdrop-blur-xl  my-auto mt-auto  shadow-sm  px-0 ${
+        className={`sticky top-0 z-40 bg-gradient-to-l from-cyan-50/30 via-cyan-50/30 dark:from-cyan-950/10 dark:via-cyan-900/10 dark:to-orange-900/10 to-orange-100/30 backdrop-blur-xl  my-auto mt-auto  shadow-sm  px-0 ${
           shouldDisplay ? "h-16 md:h-20 lg:h-20" : "h-16 md:h-[80px]"
         }`}
       >

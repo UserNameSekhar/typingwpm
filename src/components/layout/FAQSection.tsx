@@ -38,7 +38,7 @@ const FAQSection: React.FC = () => {
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
 
   return (
-    <section className="px-6 md:px-20 py-16 bg-light-bg dark:bg-gray-900">
+    <section className="px-6 md:px-20 py-16 bg-transparent">
       <div className="relative flex items-center justify-center gap-1.5 mb-6 text-center text-light-textPrimary dark:text-dark-textPrimary">
         <MessageCircleQuestion className="w-8 h-8 md:w-9 md:h-9" />
         <h2 className="text-3xl md:text-4xl font-bold  text-center ">
@@ -50,14 +50,14 @@ const FAQSection: React.FC = () => {
         {faqs.map((faq, index) => (
           <div
             key={index}
-            className="bg-white dark:bg-gray-800 shadow-md rounded-xl overflow-hidden transition-all duration-300"
+            className="bg-gray-300 dark:bg-gray-700 shadow-sm rounded-xl overflow-hidden transition-all duration-300"
           >
             {/* FAQ Question */}
             <button
               onClick={() =>
                 setExpandedFAQ(expandedFAQ === index ? null : index)
               }
-              className="w-full flex justify-between items-center px-6 py-5 text-lg font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300"
+              className="w-full flex justify-between items-center px-6 py-5 text-lg font-medium text-gray-900 dark:text-white bg-white dark:bg-gray-900 hover:bg-white dark:hover:bg-gray-950 transition-all duration-300"
             >
               {faq.question}
               {expandedFAQ === index ? (
@@ -81,7 +81,7 @@ const FAQSection: React.FC = () => {
                   : "grid-rows-[0fr] opacity-0"
               }`}
             >
-              <div className="overflow-hidden px-6 py-0.5 text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800">
+              <div className="overflow-hidden px-6 py-0.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700">
                 <div className="py-2 my-1">{faq.answer}</div>
               </div>
             </div>
