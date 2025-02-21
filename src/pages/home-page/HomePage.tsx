@@ -4,10 +4,14 @@ import Footer from "../../components/layout/Footer";
 import HeroSection from "../../components/layout/HeroSection";
 import LeaderboardSection from "../../components/layout/LeaderboardSection";
 import TypingTestSection from "../../components/layout/TypingTestSection";
+import FloatingNav from "../../components/home-page/FloatingNav";
 
 const HomePage: React.FC = () => {
   return (
-    <div className="bg-gradient-to-tl from-cyan-50 via-cyan-50 dark:from-cyan-950/20 dark:via-cyan-900/20 dark:to-orange-900/20 to-orange-100">
+    <div className="relative bg-gradient-to-tl from-cyan-50 via-cyan-50 dark:from-cyan-950/20 dark:via-cyan-900/20 dark:to-orange-900/20 to-orange-100">
+      {/* Floating Navigation */}
+      <FloatingNav />
+      
       {/* Hero Section */}
       <HeroSection />
 

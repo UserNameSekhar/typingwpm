@@ -1,16 +1,38 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
+import KeyboardButton from "../../components/learn-typing/buttons/KeyboardButton";
+import { keyboardKeys } from "../../config/learntyping";
 
-const TypingTestPage: React.FC = () => {
-  //   const location = useLocation();
-  // //   const params = new URLSearchParams(location.search);
-  // // //   const type = params.get("type") || "Text";
-  // // //   const level = params.get("level") || "Basic";
-
-  // State for dropdowns and levels
+const LearnTyping: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("Learn Text");
   const [selectedLevel, setSelectedLevel] = useState("Level 1: ASDF");
   const [keyboardInput, setKeyboardInput] = useState("");
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [words, setWords] = useState<string[]>([]);
+  const [errors, setErrors] = useState<number[]>([]);
+  const [lastTypedKey, setLastTypedKey] = useState<string | null>(null);
+  const [isKeyPressed, setIsKeyPressed] = useState(false);
+
+   // Handle physical keyboard input
+   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      setLastTypedKey(e.key);
+      setIsKeyPressed(true);
+      handleKeyboardInput(e.key);
+    };
+
+    const handleKeyUp = () => {
+      setIsKeyPressed(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [keyboardInput, currentWordIndex]);
 
   // Sample data for levels
   const categories = ["Learn Text", "Learn Numbers", "Learn Symbols"];
@@ -26,32 +48,57 @@ const TypingTestPage: React.FC = () => {
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
     setSelectedLevel("Level 1: ASDF"); // Reset level on category change
+    setWords(["asdf", "asdf", "asdf", "asdf"]); // Reset words
+    setKeyboardInput("");
+    setCurrentWordIndex(0);
+    setErrors([]);
+    setLastTypedKey(null);
   };
 
   // Handle level change
   const handleLevelChange = (level: string) => {
     setSelectedLevel(level);
+    setWords(
+      level.includes("ASDF")
+        ? ["asdf", "asdf", "asdf", "asdf"]
+        : ["jkl;", "jkl;", "jkl;", "jkl;"]
+    );
+    setKeyboardInput("");
+    setCurrentWordIndex(0);
+    setErrors([]);
+    setLastTypedKey(null);
   };
 
   // Handle keyboard input
   const handleKeyboardInput = (key: string) => {
-    setKeyboardInput((prev) => prev + key);
+    setLastTypedKey(key === " " ? "Space" : key === "Control" ? "ctrl" : key);
+
+    if (key === "Backspace") {
+      setKeyboardInput((prev) => prev.slice(0, -1));
+    } else if (key === " ") {
+      if (keyboardInput === words[currentWordIndex]) {
+        setCurrentWordIndex((prev) => prev + 1);
+        setKeyboardInput("");
+      } else {
+        setErrors((prev) => [...prev, currentWordIndex]);
+      }
+    } else if (key.length === 1) {
+      setKeyboardInput((prev) => prev + key);
+    }
   };
 
   // Handle physical keyboard input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.length === 1) {
-        handleKeyboardInput(e.key);
-      }
+      handleKeyboardInput(e.key);
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [keyboardInput, currentWordIndex]);
 
   return (
-    <section className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
+    <section className="min-h-[calc(100vh-80px)] flex flex-col md:flex-row bg-gradient-to-tl from-cyan-50 via-cyan-50 dark:from-cyan-950/20 dark:via-cyan-900/20 dark:to-orange-900/20 to-orange-100">
       {/* Sidebar (20%) */}
       <aside className="w-full md:w-1/5 p-6 bg-white dark:bg-gray-800 shadow-lg">
         <div className="space-y-6">
@@ -91,18 +138,39 @@ const TypingTestPage: React.FC = () => {
       </aside>
 
       {/* Main Content (80%) */}
-      <main className="w-full md:w-4/5 p-6">
+      <main className="w-full md:w-4/5 p-2 sm:p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
           {/* Level Content */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-4">{selectedLevel}</h2>
-            <p className="text-lg text-gray-700 dark:text-gray-300">
-              {selectedLevel === "Level 1: ASDF"
-                ? "asdf asdf asdf asdf"
-                : selectedLevel === "Level 2: JKL;"
-                ? "jkl; jkl; jkl; jkl;"
-                : "Type the following..."}
-            </p>
+            <div className="flex flex-wrap gap-2">
+              {words.map((word, index) => (
+                <div
+                  key={index}
+                  className={`p-4 text-2xl font-bold rounded-lg ${
+                    index === currentWordIndex
+                      ? "bg-blue-100 dark:bg-blue-900"
+                      : "bg-gray-100 dark:bg-gray-700"
+                  }`}
+                >
+                  {word.split("").map((char, charIndex) => (
+                    <span
+                      key={charIndex}
+                      className={`${
+                        index === currentWordIndex &&
+                        charIndex < keyboardInput.length
+                          ? keyboardInput[charIndex] === char
+                            ? "text-blue-500"
+                            : "text-red-500"
+                          : "text-gray-900 dark:text-gray-100"
+                      }`}
+                    >
+                      {char}
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Input Box */}
@@ -110,66 +178,37 @@ const TypingTestPage: React.FC = () => {
             <input
               type="text"
               value={keyboardInput}
-              onChange={(e) => setKeyboardInput(e.target.value)}
+              readOnly // Disable onChange to prevent double input
               placeholder="Start typing here..."
               className="w-full p-4 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* Virtual Keyboard */}
-          <div className="bg-gray-200 dark:bg-gray-700 p-6 rounded-lg">
-            <div className="grid grid-cols-10 gap-2">
-              {[
-                "1",
-                "2",
-                "3",
-                "4",
-                "5",
-                "6",
-                "7",
-                "8",
-                "9",
-                "0",
-                "Q",
-                "W",
-                "E",
-                "R",
-                "T",
-                "Y",
-                "U",
-                "I",
-                "O",
-                "P",
-                "A",
-                "S",
-                "D",
-                "F",
-                "G",
-                "H",
-                "J",
-                "K",
-                "L",
-                ";",
-                "Z",
-                "X",
-                "C",
-                "V",
-                "B",
-                "N",
-                "M",
-                ",",
-                ".",
-                "/",
-              ].map((key) => (
-                <button
-                  key={key}
-                  onClick={() => handleKeyboardInput(key.toLowerCase())}
-                  className="p-3 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300"
-                >
-                  {key}
-                </button>
-              ))}
-            </div>
+          <div className="bg-gray-200 dark:bg-gray-700 p-6 rounded-2xl relative">
+            <div
+              className="absolute inset-0  sm:inset-2 rounded-2xl bg-gray-300 dark:bg-gray-700"
+              style={{
+                boxShadow:
+                  "0px 5px 10px rgba(255,255,255,0.2) inset, 5px 0px 10px rgba(0,0,0,0.1) inset, -5px 0px 10px rgba(0,0,0,0.1) inset, 0px -5px 10px rgba(0,0,0,0.1) inset",
+              }}
+            ></div>
+            {keyboardKeys.map((row, rowIndex) => (
+              <div
+                key={rowIndex}
+                className="flex justify-center gap-1 md:gap-[7px] mb-2.5 md:mb-3 lg:mb-4"
+              >
+                {row.map((key, index) => (
+                  <KeyboardButton
+                    key={index}
+                    text1={key.text1}
+                    text2={key?.text2!}
+                    clickedKey={lastTypedKey!}
+                    isKeyPressed={isKeyPressed}
+                  />
+                ))}
+              </div>
+            ))}
           </div>
         </div>
       </main>
@@ -177,4 +216,4 @@ const TypingTestPage: React.FC = () => {
   );
 };
 
-export default TypingTestPage;
+export default LearnTyping;

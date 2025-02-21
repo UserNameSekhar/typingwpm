@@ -12,7 +12,7 @@ import React from "react";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-gray-900 text-white dark:bg-gray-800 py-12 px-6 md:px-16 lg:px-24">
+    <footer className="bg-gray-800 text-white dark:bg-gray-950 py-12 px-6 md:px-16 lg:px-24">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
         {/* About Section */}
         <div>

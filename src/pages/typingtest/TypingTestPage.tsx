@@ -35,6 +35,7 @@ const TypingTestPage: React.FC = () => {
   const [completed, setCompleted] = useState<boolean>(false);
   const [endTime, setEndTime] = useState<number | null>(null);
   const [characterErrors, setCharacterErrors] = useState<boolean[][]>([]);
+  const [tabKeyPressed, setTabKeyPressed] = useState<boolean>(false);
 
   useEffect(() => {
     fetchNewParagraph();
@@ -189,6 +190,38 @@ const TypingTestPage: React.FC = () => {
     const minutesElapsed = (endTime - startTime) / 60000 || 1; // Prevent division by zero
     return Math.max(Math.round(totalCharsTyped / minutesElapsed), 0);
   };
+
+// Handle keyboard shortcuts
+useEffect(() => {
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === "Tab") {
+      // Set flag when Tab key is pressed
+      setTabKeyPressed(true);
+    } else if (event.key === "Enter" && tabKeyPressed) {
+      // If Enter is pressed after Tab, restart the test
+      restartTest();
+      setTabKeyPressed(false); // Reset the flag
+    }
+  };
+
+  const handleKeyUp = (event: KeyboardEvent) => {
+    if (event.key === "Tab") {
+      // Reset the flag when Tab key is released
+      setTabKeyPressed(false);
+    }
+  };
+
+  // Add event listeners
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+
+  // Cleanup event listeners
+  return () => {
+    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("keyup", handleKeyUp);
+  };
+}, [tabKeyPressed, restartTest]);
+  
 
   return (
     <section className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 text-light-textPrimary dark:text-dark-textPrimary bg-gradient-to-tl from-cyan-50 via-cyan-50 dark:from-cyan-950/20 dark:via-cyan-900/20 dark:to-orange-900/20 to-orange-100">

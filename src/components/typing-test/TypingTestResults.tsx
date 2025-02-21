@@ -35,7 +35,6 @@ const TypingTestResults: React.FC<TTRProps> = ({
   calculateFinalCpm,
   restartTest,
 }) => {
-  console.log(allParagraphs);
   return (
     <>
       <div className="w-full max-w-3xl mx-auto p-8 bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">

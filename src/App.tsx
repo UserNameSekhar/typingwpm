@@ -50,8 +50,7 @@ const App: React.FC = () => {
     }
   }, [dispatch, isLoggedIn, token]);
 
-  // Detect scroll position
-  // Handle scroll event
+  // Detect scroll position Handle scroll event
   const handleScroll = () => {
     const scrollPosition = window.scrollY;
     const documentHeight = document.documentElement.scrollHeight;
@@ -83,7 +82,29 @@ const App: React.FC = () => {
   };
 
   // Add and clean up scroll event listener
+  // useEffect(() => {
+  //   window.addEventListener("scroll", handleScroll);
+  //   return () => {
+  //     window.removeEventListener("scroll", handleScroll);
+  //     if (scrollTimeout) {
+  //       clearTimeout(scrollTimeout);
+  //     }
+  //   };
+  // }, [scrollTimeout]);
+
+  // Add and clean up scroll event listener
   useEffect(() => {
+    // Initialize scroll button visibility based on the current scroll position
+    const scrollPosition = window.scrollY;
+    const documentHeight = document.documentElement.scrollHeight;
+    const windowHeight = window.innerHeight;
+
+    if (scrollPosition > 0 && scrollPosition + windowHeight < documentHeight) {
+      setShowScrollButtons(true);
+    } else {
+      setShowScrollButtons(false);
+    }
+
     window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
@@ -91,20 +112,15 @@ const App: React.FC = () => {
         clearTimeout(scrollTimeout);
       }
     };
-  }, [scrollTimeout]);
+  }, [scrollTimeout, location]);
 
   // Scroll to top
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Scroll to bottom
-  // const scrollToBottom = () => {
-  //   window.scrollTo({
-  //     top: document.documentElement.scrollHeight,
-  //     behavior: "smooth",
-  //   });
-  // };
+  // Define the pages where the scroll button should be shown
+  const showScrollButtonPages = ["/", "/about", "/contact","/learn-typing", "/test", "/privacy-policy", "/terms"];
 
   // Check if the theme preference is already saved in localStorage
   useEffect(() => {
@@ -130,85 +146,84 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="bg-light-bg min-h-screen dark:bg-dark-bg">
-      <Header
-        toggleTheme={toggleTheme}
-        isDarkMode={isDarkMode}
-        setShowLogin={setShowLogin}
-        setNavigateTo={setNavigateTo}
-      />
-      {showLogin ? (
-        <LoginPopup setShowLogin={setShowLogin} navigateTo={navigateTo} />
-      ) : null}
-      <>
-        <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/*" element={<PageNotFound />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route
-            path="/settings"
-            element={
-              <SettingsPage isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
-            }
-          />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/resources" element={<ResourcesPage />} />
+    <div className="bg-light-bg dark:bg-dark-bg  min-h-screen">
+      <div className="bg-gradient-to-tl from-cyan-50 via-cyan-50 dark:from-cyan-950/20 dark:via-cyan-900/20 dark:to-orange-900/20 to-orange-100">
+        <Header
+          toggleTheme={toggleTheme}
+          isDarkMode={isDarkMode}
+          setShowLogin={setShowLogin}
+          setNavigateTo={setNavigateTo}
+        />
+        {showLogin ? (
+          <LoginPopup setShowLogin={setShowLogin} navigateTo={navigateTo} />
+        ) : null}
+        <>
+          <ScrollToTop />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/*" element={<PageNotFound />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route
+              path="/settings"
+              element={
+                <SettingsPage
+                  isDarkMode={isDarkMode}
+                  toggleTheme={toggleTheme}
+                />
+              }
+            />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/resources" element={<ResourcesPage />} />
 
-          <Route path="/test" element={<TypingTestPage />} />
-          <Route path="/learn-typing" element={<LearnTyping />} />
+            <Route path="/test" element={<TypingTestPage />} />
+            <Route path="/learn-typing" element={<LearnTyping />} />
 
-          {/* Protected Routes */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute isLoggedIn={isLoggedIn}>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+            {/* Protected Routes */}
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
 
-        {/* Scroll Up and Down Buttons */}
-        <div className="fixed flex flex-col gap-2 bottom-4 right-4 z-50">
-          <AnimatePresence>
-            {showScrollButtons && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
-                className="hidden sm:flex flex-col gap-2 "
-              >
-                <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ delay: 0.1, duration: 0.3 }}
-                  onClick={scrollToTop}
-                  className="bg-dark-card/50 dark:bg-light-card/50 z-30 text-dark-textPrimary dark:text-light-textPrimary p-2 rounded-full shadow-xl transition-all ease-in-out duration-200 delay-75"
-                  style={{ backdropFilter: "blur(10px)" }}
-                >
-                  <ChevronsUp className="transition-all ease-in-out duration-200 delay-75" />
-                </motion.button>
-                {/* <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ delay: 0.3, duration: 0.6 }}
-                  onClick={scrollToBottom}
-                  className="bg-dark-card/50 dark:bg-light-card/50 z-30 text-dark-textPrimary dark:text-light-textPrimary p-2 rounded-full shadow-xl transition-all ease-in-out duration-200 delay-75"
-                  style={{ backdropFilter: "blur(10px)" }}
-                >
-                  <ArrowDown className="transition-all ease-in-out duration-200 delay-75" />
-                </motion.button> */}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </>
+          {/* Scroll Up and Down Buttons */}
+          {showScrollButtonPages.includes(location.pathname) && (
+            <div className="fixed flex flex-col gap-2 bottom-4 right-4 z-50">
+              <AnimatePresence>
+                {showScrollButtons && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="hidden sm:flex flex-col gap-2 "
+                  >
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ delay: 0.1, duration: 0.3 }}
+                      onClick={scrollToTop}
+                      className="bg-gradient-to-br from-orange-50/30 via-orange-100/30 to-cyan-100/30 dark:from-orange-700/10 dark:via-yellow-700/10 dark:to-cyan-500/10 backdrop-blur-md text-gray-800 dark:text-gray-100 shadow-lg hover:shadow-xl active:shadow-md transition-all duration-300 ease-in-out z-30  p-2 rounded-full  delay-75"
+                      style={{ backdropFilter: "blur(10px)" }}
+                    >
+                      <ChevronsUp
+                        size={42}
+                        className="transition-all ease-in-out duration-200 delay-75"
+                      />
+                    </motion.button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </>
+      </div>
     </div>
   );
 };

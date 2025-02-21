@@ -30,7 +30,7 @@ const Leaderboard: React.FC = () => {
     : leaderboardData[activeTab].slice(0, 10);
 
   return (
-    <section className="px-4 sm:px-8 md:px-20 py-12 bg-transparent">
+    <section id="leaderboard" className="min-h-[calc(100vh-80px)] scroll-m-14 px-4 sm:px-8 md:px-20 py-12 bg-transparent">
       {/* Leaderboard Header */}
       <div className="relative flex items-center justify-center gap-1.5 mb-6 text-center">
         <Medal className="text-yellow-500 dark:text-yellow-400 w-8 h-8 md:w-9 md:h-9"/>
@@ -50,7 +50,7 @@ const Leaderboard: React.FC = () => {
               ${
                 activeTab === tab
                   ? "bg-indigo-500 text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  : "bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-950"
               }`}
           >
             {tab.replace(/([A-Z])/g, " $1")}
