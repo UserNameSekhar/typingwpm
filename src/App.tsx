@@ -82,17 +82,6 @@ const App: React.FC = () => {
   };
 
   // Add and clean up scroll event listener
-  // useEffect(() => {
-  //   window.addEventListener("scroll", handleScroll);
-  //   return () => {
-  //     window.removeEventListener("scroll", handleScroll);
-  //     if (scrollTimeout) {
-  //       clearTimeout(scrollTimeout);
-  //     }
-  //   };
-  // }, [scrollTimeout]);
-
-  // Add and clean up scroll event listener
   useEffect(() => {
     // Initialize scroll button visibility based on the current scroll position
     const scrollPosition = window.scrollY;
