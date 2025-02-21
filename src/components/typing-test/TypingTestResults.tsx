@@ -17,7 +17,6 @@ interface TTRProps {
   accuracy: number;
   calculateFinalWpm: () => number;
   mistakenWords: MistakenWord[];
-  allParagraphs: string[][]; // Pass all paragraphs
   calculateFinalCpm: () => number;
   restartTest: () => void;
 }
@@ -31,7 +30,6 @@ const TypingTestResults: React.FC<TTRProps> = ({
   accuracy,
   calculateFinalWpm,
   mistakenWords,
-  allParagraphs, // Destructure allParagraphs
   calculateFinalCpm,
   restartTest,
 }) => {

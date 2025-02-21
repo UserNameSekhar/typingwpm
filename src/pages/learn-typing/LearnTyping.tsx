@@ -13,8 +13,8 @@ const LearnTyping: React.FC = () => {
   const [lastTypedKey, setLastTypedKey] = useState<string | null>(null);
   const [isKeyPressed, setIsKeyPressed] = useState(false);
 
-   // Handle physical keyboard input
-   useEffect(() => {
+  // Handle physical keyboard input
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       setLastTypedKey(e.key);
       setIsKeyPressed(true);
@@ -98,16 +98,16 @@ const LearnTyping: React.FC = () => {
   }, [keyboardInput, currentWordIndex]);
 
   return (
-    <section className="min-h-[calc(100vh-80px)] flex flex-col md:flex-row bg-gradient-to-tl from-cyan-50 via-cyan-50 dark:from-cyan-950/20 dark:via-cyan-900/20 dark:to-orange-900/20 to-orange-100">
+    <section className="min-h-[calc(100vh-80px)] flex flex-col md:flex-row">
       {/* Sidebar (20%) */}
-      <aside className="w-full md:w-1/5 p-6 bg-white dark:bg-gray-800 shadow-lg">
+      <aside className="w-full md:w-1/5 p-6 bg-transparent backdrop-blur-lg">
         <div className="space-y-6">
           {/* Category Dropdown */}
           <div className="relative">
             <select
               value={selectedCategory}
               onChange={(e) => handleCategoryChange(e.target.value)}
-              className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 rounded-lg bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-600 outline-none ring-0 text-gray-900 dark:text-gray-100 appearance-none focus:border-gray-300 dark:focus:border-gray-400"
             >
               {categories.map((category) => (
                 <option key={category} value={category}>
@@ -126,8 +126,8 @@ const LearnTyping: React.FC = () => {
                 onClick={() => handleLevelChange(level)}
                 className={`w-full p-3 rounded-lg text-left transition-all duration-300 ${
                   selectedLevel === level
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    ? "bg-indigo-500 text-white"
+                    : "bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-light-textPrimary dark:text-dark-textPrimary"
                 }`}
               >
                 {level}
@@ -142,15 +142,15 @@ const LearnTyping: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           {/* Level Content */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">{selectedLevel}</h2>
+            <h2 className="text-2xl font-bold mb-4 text-light-textPrimary dark:text-dark-textPrimary">{selectedLevel}</h2>
             <div className="flex flex-wrap gap-2">
               {words.map((word, index) => (
                 <div
                   key={index}
                   className={`p-4 text-2xl font-bold rounded-lg ${
                     index === currentWordIndex
-                      ? "bg-blue-100 dark:bg-blue-900"
-                      : "bg-gray-100 dark:bg-gray-700"
+                      ? "bg-indigo-900 dark:bg-indigo-100"
+                      : "bg-indigo-100 dark:bg-indigo-900"
                   }`}
                 >
                   {word.split("").map((char, charIndex) => (
@@ -160,9 +160,9 @@ const LearnTyping: React.FC = () => {
                         index === currentWordIndex &&
                         charIndex < keyboardInput.length
                           ? keyboardInput[charIndex] === char
-                            ? "text-blue-500"
+                            ? "text-lime-400 dark:text-lime-600"
                             : "text-red-500"
-                          : "text-gray-900 dark:text-gray-100"
+                          : "text-gray-500"
                       }`}
                     >
                       {char}
@@ -174,7 +174,7 @@ const LearnTyping: React.FC = () => {
           </div>
 
           {/* Input Box */}
-          <div className="mb-8">
+          <div className="mb-2">
             <input
               type="text"
               value={keyboardInput}
@@ -182,6 +182,12 @@ const LearnTyping: React.FC = () => {
               placeholder="Start typing here..."
               className="w-full p-4 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          <div className="my-2 mb-6 text-light-textPrimary dark:text-dark-textPrimary ">
+            <p>
+              <strong>Errors</strong> : {errors}
+            </p>
           </div>
 
           {/* Virtual Keyboard */}

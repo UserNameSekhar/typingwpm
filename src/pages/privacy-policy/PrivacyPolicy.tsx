@@ -44,7 +44,7 @@ const PrivacyPolicy = () => {
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="min-h-[calc(100vh-80px)]  text-gray-900 dark:text-white">
       {/* Hero Section */}
       <section className="relative text-center py-14 md:py-16 lg:py-20 rounded-b-3xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg">
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold">
@@ -65,7 +65,7 @@ const PrivacyPolicy = () => {
           {policies.map((item, index) => (
             <div
               key={index}
-              className="p-6 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-lg flex items-start space-x-4"
+              className="p-6 bg-light-bg dark:bg-dark-bg rounded-lg shadow-lg flex items-start space-x-4"
             >
               {item.icon}
               <div>

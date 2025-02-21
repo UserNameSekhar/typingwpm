@@ -23,6 +23,11 @@ body::-webkit-scrollbar {
   font-family: "Roboto", sans-serif;
 }
 
+body {
+  @apply bg-gradient-to-tl from-cyan-50 via-cyan-50 to-orange-100 dark:from-cyan-950/20 dark:via-cyan-900/20 dark:to-orange-900/20 bg-fixed;
+}
+
+
 /* Primary Button Utility */
 .btn-primary {
   @apply bg-light-primary text-white py-2 px-6 rounded-lg hover:bg-light-accent focus:outline-none focus:ring-2 focus:ring-light-primary dark:bg-dark-primary dark:hover:bg-dark-accent;
@@ -96,7 +101,7 @@ body::-webkit-scrollbar {
 }
 
 .iconContainer:hover .icon {
-  animation: slide-in-top 0.4s both;
+  animation: slide-in-bottom 0.4s both;
 }
 
 .iconContainer:hover .text {
@@ -107,6 +112,18 @@ body::-webkit-scrollbar {
 @keyframes slide-in-top {
   0% {
     transform: translateY(50px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-bottom {
+  0% {
+    transform: translateY(-50px);
     opacity: 0;
   }
 

@@ -121,7 +121,7 @@ const FloatingNav: React.FC = () => {
                   ?.scrollIntoView({ behavior: "smooth" });
               }}
             >
-              <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-transparent flex flex-col items-center justify-center overflow-hidden cursor-pointer text-gray-900 dark:text-white dark:hover:text-white transition-all duration-300 ease-in-out transform hover:scale-125 active:scale-95 iconContainer group">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-transparent flex flex-col items-center justify-center overflow-hidden cursor-pointer text-gray-900 dark:text-white dark:hover:text-white transition-all duration-500 ease-in-out transform hover:scale-100 active:scale-95 iconContainer group">
                 <span className="icon">{section.icon}</span>
                 <span className="text hidden md:group-hover:block text-xs truncate text-center">{section.label}</span>
               </div>

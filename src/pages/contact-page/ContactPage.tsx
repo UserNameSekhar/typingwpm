@@ -6,7 +6,7 @@ import Footer from "../../components/layout/Footer";
 const ContactPage = () => {
   const navigate = useNavigate();
   return (
-    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="min-h-[calc(100vh-80px)] text-gray-900 dark:text-white">
       {/* Hero Section */}
       <section className="text-center py-10 sm:py-12 md:py-14 lg:py-16">
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4">
@@ -63,7 +63,7 @@ const ContactPage = () => {
       </section>
 
       {/* Contact Form */}
-      <section className="px-4 sm:px-6 md:px-12 lg:px-20 py-12 md:py-16 bg-gray-50 dark:bg-gray-800">
+      <section className="px-4 sm:px-6 md:px-12 lg:px-20 py-12 md:py-16 bg-white/60 dark:bg-gray-900/30 backdrop-blur-md">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8">
           Send Us a Message
         </h2>
@@ -114,14 +114,14 @@ const ContactPage = () => {
         <h2 className="text-2xl sm:text-3xl font-bold mb-4">Follow Us</h2>
         <div className="flex justify-center gap-6">
           {[
-            { icon: Facebook, color: "text-indigo-600 dark:text-indigo-500" },
-            { icon: Twitter, color: "text-indigo-600 dark:text-indigo-500" },
-            { icon: Linkedin, color: "text-indigo-600 dark:text-indigo-500" },
+            { icon: Facebook, color: "text-indigo-500 dark:text-indigo-400" },
+            { icon: Twitter, color: "text-indigo-500 dark:text-indigo-400" },
+            { icon: Linkedin, color: "text-indigo-500 dark:text-indigo-400" },
           ].map((item, index) => (
             <a
               key={index}
               href="#"
-              className={`p-3 bg-gray-50 dark:bg-gray-800 rounded-full shadow-md hover:shadow-lg transition-all duration-500 ease-in-out hover:scale-125 ${item.color}`}
+              className={`p-3 bg-gray-50 hover:bg-white dark:bg-gray-900 dark:hover:bg-gray-950 rounded-full shadow-md hover:shadow-lg transition-all duration-500 ease-in-out hover:scale-125 ${item.color}`}
             >
               <item.icon size={24} />
             </a>

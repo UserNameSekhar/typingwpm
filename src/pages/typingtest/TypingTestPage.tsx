@@ -224,7 +224,7 @@ useEffect(() => {
   
 
   return (
-    <section className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 text-light-textPrimary dark:text-dark-textPrimary bg-gradient-to-tl from-cyan-50 via-cyan-50 dark:from-cyan-950/20 dark:via-cyan-900/20 dark:to-orange-900/20 to-orange-100">
+    <section className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-4 md:px-6 py-6 text-light-textPrimary dark:text-dark-textPrimary">
       <TypingTestPageHeader
         type={type}
         level={level}
@@ -287,7 +287,6 @@ useEffect(() => {
             mistakenWords={mistakenWords}
             calculateFinalWpm={calculateFinalWpm}
             calculateFinalCpm={calculateFinalCpm}
-            allParagraphs={allParagraphs}
             restartTest={restartTest}
           />
         </>

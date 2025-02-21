@@ -21,7 +21,7 @@ const teamMembers = [
 
 const AboutPage = () => {
   return (
-    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="min-h-[calc(100vh-80px)] text-gray-900 dark:text-white">
       {/* Hero Section */}
       <section className="relative text-center py-10 sm:py-12 md:py-14 lg:py-16">
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4">
@@ -86,7 +86,7 @@ const AboutPage = () => {
       </section>
 
       {/* Features */}
-      <section className="px-4 sm:px-6 md:px-12 lg:px-20 py-12 md:py-16 bg-gray-50 dark:bg-gray-800">
+      <section className="px-4 sm:px-6 md:px-12 lg:px-20 py-12 md:py-16 bg-white/60 dark:bg-gray-900/30 backdrop-blur-md">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8">
           Why Choose Us?
         </h2>

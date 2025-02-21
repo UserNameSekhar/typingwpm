@@ -16,7 +16,7 @@ const SettingsPage: React.FC<SettingsProps> = ({ isDarkMode, toggleTheme }) => {
   const path = location.pathname.replace("/", "");
 
   return (
-    <div className="bg-gradient-to-b from-light-bg via-light-card to-light-bg dark:from-dark-bg dark:via-dark-card dark:to-dark-bg text-light-textPrimary dark:text-dark-textPrimary min-h-[calc(100vh-100px)]">
+    <div className="min-h-[calc(100vh-80px)] bg-fixed bg-gradient-to-tl from-cyan-50 via-cyan-50 dark:from-cyan-950/20 dark:via-cyan-900/20 dark:to-orange-900/20 to-orange-100 text-light-textPrimary dark:text-dark-textPrimary">
       <div className="container mx-auto p-6 py-4 md:py-6 flex flex-col gap-4 md:gap-6">
         <div>
           {/* Breadcrumb */}
